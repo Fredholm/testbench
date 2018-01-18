@@ -130,24 +130,4 @@ private:
     UINT64                      m_FenceValue[Options::AmountOfFrames];      //< Current Fence Value
 };
 
-/* 
-
-    Copied from Lecture for ref.
-    \check 1. Find D3D12 compliant adapter
-    \check 2. Create D3D12 device
-    \check 3. Create command queue/allocator/list
-    \check 4. Create fence
-    \check 5. Create swap chain
-    \check 6. Create render target descriptors
-    \check 7. Define viewport and scissor rect
-    \check 8. Create root signature
-    \check 9. Create vertex and pixel shaders
-    \check 10. Create pipeline state
-    \check 11. (Create constant buffer resources)
-    \check 12. Create vertex buffer resources
-    \check 13. Draw (which includes a lot of stuff )
-    Ez.
-
-*/
-
 #endif // !DX12RENDERER_H
