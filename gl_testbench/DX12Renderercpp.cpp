@@ -1,6 +1,7 @@
 #include "DX12Renderer.h"
 
 DX12Renderer::DX12Renderer() 
+    : m_FenceValue{}
 {
     m_SDLWindow             = nullptr;
     m_SwapChain             = nullptr;
@@ -129,10 +130,8 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     // Setting start variables
     m_RenderTargetViewDescSize  = 0;
     m_FrameIndex                = 0;
-    m_FenceValue[0]             = UINT64(0);
-    m_FenceValue[1]             = UINT64(0);
-    m_Viewport                  = CD3DX12_VIEWPORT(0.f, 0.f, width, height);
-    m_ScissorRect               = CD3DX12_RECT(0.f, 0.f, LONG(width), LONG(height));
+    m_Viewport                  = CD3DX12_VIEWPORT(0.0f, 0.0f, width, height);
+    m_ScissorRect               = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
     m_AspectRatio               = float(width) / float(height);
 
     /************************/
@@ -238,7 +237,7 @@ void DX12Renderer::loadAssets()
     /*
         Creation of EMPTY Root Signature
     */
-    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ID3DBlob* signature;
@@ -293,7 +292,7 @@ void DX12Renderer::loadAssets()
     */
 
     ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator[m_FrameIndex], m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
-    ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready
+    ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
 
 
     /*
@@ -324,14 +323,14 @@ void DX12Renderer::loadAssets()
     // Copy the triangle data to the vertex buffer
     UINT8* vertexDataStart;
     CD3DX12_RANGE readRange(0, 0); // Not intended for the CPU to read
-    ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, (void**)&vertexDataStart));
+    ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataStart)));
     memcpy(vertexDataStart, trianglesVertices, sizeof(trianglesVertices));
     m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-    m_VertexBufferView.SizeInBytes = sizeof(Vertex);
-    m_VertexBufferView.StrideInBytes = vertexBufferSize;
+    m_VertexBufferView.StrideInBytes = sizeof(Vertex);
+    m_VertexBufferView.SizeInBytes = vertexBufferSize;
 
     /*
         Creation of Objects used for Syncing GPU and CPU
@@ -341,7 +340,7 @@ void DX12Renderer::loadAssets()
     m_FenceValue[m_FrameIndex]++;
 
     m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if (!m_FenceEvent)
+    if (m_FenceEvent == nullptr)
         ThrowWithMessage(0x80004003, __FILE__, __LINE__);
 
     // Setup is done, just for safety, we wait for the GPU, until we start the commands

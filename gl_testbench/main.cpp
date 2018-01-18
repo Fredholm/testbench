@@ -313,6 +313,7 @@ int main(int argc, char *argv[])
         renderer->present();
     }
 
+
 	//renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	//initialiseTestbench();
 	//run();
