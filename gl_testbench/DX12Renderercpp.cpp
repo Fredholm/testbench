@@ -247,7 +247,7 @@ void DX12Renderer::loadAssets()
 
 
     /*
-        Creation of Shaders
+        Creation of Shaders (Move this over to Material_DX12 asap)
     */
     ID3DBlob* vertexShader;
     ID3DBlob* pixelShader;

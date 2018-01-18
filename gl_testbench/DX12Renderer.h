@@ -133,15 +133,15 @@ private:
     \check 1. Find D3D12 compliant adapter
     \check 2. Create D3D12 device
     \check 3. Create command queue/allocator/list
-    4. Create fence
+    \check 4. Create fence
     \check 5. Create swap chain
     \check 6. Create render target descriptors
     \check 7. Define viewport and scissor rect
-    8. Create root signature
-    9. Create vertex and pixel shaders
-    10. Create pipeline state
+    \check 8. Create root signature
+    \check 9. Create vertex and pixel shaders
+    \check 10. Create pipeline state
     11. (Create constant buffer resources)
-    12. Create vertex buffer resources
+    \check 12. Create vertex buffer resources
     13. Draw (which includes a lot of stuff )
 
 */
