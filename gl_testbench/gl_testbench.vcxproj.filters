@@ -90,10 +90,10 @@
     <ClCompile Include="OpenGL\VertexBufferGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="DX12Renderercpp.cpp">
+    <ClCompile Include="DX12\DX12Renderercpp.cpp">
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
-    <ClCompile Include="VertexBuffer_DX12.cpp">
+    <ClCompile Include="DX12\VertexBuffer_DX12.cpp">
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,13 +170,13 @@
     <ClInclude Include="OpenGL\VertexBufferGL.h">
       <Filter>Source Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="DX12Renderer.h">
+    <ClInclude Include="DX12\DX12Renderer.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
-    <ClInclude Include="Utility.h">
+    <ClInclude Include="DX12\VertexBuffer_DX12.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBuffer_DX12.h">
+    <ClInclude Include="DX12\Utility.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
   </ItemGroup>

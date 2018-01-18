@@ -2,7 +2,7 @@
 #define VERTEXBUFFER_DX12_H
 
 #include <DirectXMath.h>
-#include "VertexBuffer.h"
+#include "../VertexBuffer.h"
 
 #define _USE_MATH_DEFINES
 

@@ -2,7 +2,7 @@
 #define DX12RENDERER_H
 
 // Include of the abstract Renderer class
-#include "Renderer.h"
+#include "../Renderer.h"
 
 // DirectX12 Includes 
 #include <d3d12.h>
