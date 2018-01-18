@@ -58,7 +58,6 @@ public:
 
     int initialize(unsigned int width = 800, unsigned int height = 600);
     void setWinTitle(const char* title);
-    void present();
     int shutdown();
 
     void setClearColor(float r, float g, float b, float a);
@@ -71,7 +70,8 @@ public:
     void submit(Mesh* mesh);
 
     // \brief Called each frame 
-    // Basicly the render function
+    // Basicly the update and render functions
+    void present();
     void frame();
 
 private:
@@ -92,6 +92,8 @@ private:
     // DirectX 12 Helper Functions
     void getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** adapter);
     void waitForTheGPU();
+    void addToCommandList();
+    void moveToNextFrame();
 
     // Graphical Vars
     CD3DX12_VIEWPORT            m_Viewport;

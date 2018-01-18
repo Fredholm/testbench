@@ -385,13 +385,49 @@ void DX12Renderer::waitForTheGPU()
     m_FenceValue[m_FrameIndex]++;
 }
 
+void DX12Renderer::present()
+{
+    // Add all the commands needed to render scene
+    addToCommandList();
+
+    // Open for more command lists in the future
+    ID3D12CommandList* pCommandLists[] = { m_CommandList };
+    m_CommandQueue->ExecuteCommandLists(__crt_countof(pCommandLists), pCommandLists);
+
+    // Present
+    ThrowIfFailed(m_SwapChain->Present(1, 0));
+
+    moveToNextFrame();
+}
+
+void DX12Renderer::addToCommandList()
+{
+
+}
+
+void DX12Renderer::moveToNextFrame()
+{
+    // Issue a signal command into the command queue
+    const UINT64 currentFenceValue = m_FenceValue[m_FrameIndex];
+    ThrowIfFailed(m_CommandQueue->Signal(m_Fence, currentFenceValue));
+
+    // Change the frame index
+    m_FrameIndex++;
+
+    // If the next frame is not ready to be rendered, wait
+    if (m_Fence->GetCompletedValue() < m_FenceValue[m_FrameIndex])
+    {
+        ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue[m_FrameIndex], m_FenceEvent));
+        WaitForSingleObjectEx(m_FenceEvent, INFINITE, FALSE);
+    }
+
+    // Set the fence value for the next frame
+    m_FenceValue[m_FrameIndex] = currentFenceValue + 1;
+}
+
 void DX12Renderer::setWinTitle(const char * title)
 {
     SDL_SetWindowTitle(m_SDLWindow, title);
-}
-
-void DX12Renderer::present()
-{
 }
 
 int DX12Renderer::shutdown()
@@ -496,4 +532,5 @@ void DX12Renderer::submit(Mesh * mesh)
 
 void DX12Renderer::frame()
 {
+
 }
