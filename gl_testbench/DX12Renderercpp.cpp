@@ -1,6 +1,25 @@
 #include "DX12Renderer.h"
 
-DX12Renderer::DX12Renderer() { }
+DX12Renderer::DX12Renderer() 
+{
+    m_SDLWindow             = nullptr;
+    m_SwapChain             = nullptr;
+    m_Device                = nullptr;
+    m_CommandQueue          = nullptr;
+    m_CommandList           = nullptr;
+    m_RootSignature         = nullptr;
+    m_DescriptorHeap        = nullptr;
+    m_PipelineState         = nullptr;
+    m_GraphicsCommandList   = nullptr;
+    m_VertexBuffer          = nullptr;
+    m_Fence                 = nullptr;
+
+    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+    {
+        m_RenderTargets[i]      = nullptr;
+        m_CommandAllocator[i]   = nullptr;
+    }
+}
 
 DX12Renderer::~DX12Renderer() { }
 
@@ -67,37 +86,171 @@ Technique * DX12Renderer::makeTechnique(Material* material, RenderState* renderS
 
 int DX12Renderer::initialize(unsigned int width, unsigned int height)
 {
-    initSDLWindown(width, height);
+    // Initialize Window
+    initSDLWindow(width, height);
 
+    // Initialize DX12
+    initDX12(width, height);
 
     return 0;
 }
 
-void DX12Renderer::initSDLWindown(unsigned int width, unsigned int height)
+void DX12Renderer::initSDLWindow(unsigned int width, unsigned int height)
 {
+    // Initializing SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "%s", SDL_GetError());
         exit(-1);
     }
-    // Request an OpenGL 4.5 context (should be core)
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-    // Also request a depth buffer
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    window = SDL_CreateWindow("DirectX12", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_RESIZABLE);
-    context = SDL_GL_CreateContext(window);
+    // Create the SDL window
+    m_SDLWindow = SDL_CreateWindow("DirectX12", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_BORDERLESS);
 
-    SDL_GL_MakeCurrent(window, context);
+    // Get Window Information
+    struct SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if (-1 == SDL_GetWindowWMInfo(m_SDLWindow, &wmInfo))
+        throw std::runtime_error("Couldn't get WM Info!");
+
+    // Get the HWND and HDC from SDL window
+    m_WindowHandle = wmInfo.info.win.window;
+    m_WindowContext = wmInfo.info.win.hdc;
+}
+
+void DX12Renderer::initDX12(unsigned int width, unsigned int height)
+{
+    // Setting start variables
+    m_RenderTargetViewDescSize  = 0;
+    m_FrameIndex                = 0;
+    m_FenceValue[0]             = UINT64(0);
+    m_FenceValue[1]             = UINT64(0);
+    m_Viewport                  = CD3DX12_VIEWPORT(0.f, 0.f, width, height);
+    m_ScissorRect               = CD3DX12_RECT(0.f, 0.f, LONG(width), LONG(height));
+
+    /* */
+    /* Loading Pipeline * *.
+    /* */
+
+    /*
+        Creation of the Device
+    */
+
+    // Collect flags from different stuff for creation of a correct factory
+    UINT factoryFlags = 0;
+
+    // Enable the debug layer
+    ID3D12Debug* debugController;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+    {
+        debugController->EnableDebugLayer();
+        factoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+    }
+
+    IDXGIFactory4* factory;
+    ThrowIfFailed(CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&factory)));
+
+    IDXGIAdapter1* hardwareAdapter;
+    getHardwareAdapter(factory, &hardwareAdapter);
+
+    ThrowIfFailed(D3D12CreateDevice(hardwareAdapter, Options::FeatureLevel, IID_PPV_ARGS(&m_Device)));
+
+    /*
+        Creation of the Command Queue
+    */
+
+    D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {}; // Reset
+    commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+    ThrowIfFailed(m_Device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&m_CommandQueue)));
+    
+    /*
+        Creation of the Swap Chain
+    */
+
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+    swapChainDesc.BufferCount       = Options::AmountOfFrames;
+    swapChainDesc.Width             = width;
+    swapChainDesc.Height            = height;
+    swapChainDesc.Format            = Options::Format;
+    swapChainDesc.BufferUsage       = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.SwapEffect        = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.SampleDesc.Count  = 1;
+
+    ComPtr<IDXGISwapChain1> swapChain;
+    ThrowIfFailed(factory->CreateSwapChainForHwnd(m_CommandQueue, m_WindowHandle, &swapChainDesc, nullptr, nullptr, &swapChain));
+
+    // We make ALT+Enter unavailable because the swap chain doesn't support fullscreen transitions
+    ThrowIfFailed(factory->MakeWindowAssociation(m_WindowHandle, DXGI_MWA_NO_ALT_ENTER));
+
+    m_SwapChain = (IDXGISwapChain3*)(swapChain.Get());
+    m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+    /*
+        Creation of the Render Target Binding Descriptor Heap
+    */
+
+    D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
+    renderTargetViewHeapDesc.NumDescriptors = Options::AmountOfFrames;
+    renderTargetViewHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    renderTargetViewHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_DescriptorHeap)));
+    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+    /*
+        Creation of Command Allocater resources
+    */
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+    // Create a Render Target View and a Command Allocator for each frame
+    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+    {
+        ThrowIfFailed(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_RenderTargets[i])));
+        m_Device->CreateRenderTargetView(m_RenderTargets[i], nullptr, renderTargetViewHandle);
+        renderTargetViewHandle.Offset(1, m_RenderTargetViewDescSize);
+
+        ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator[i])));
+    }
+
+    // These things won't be used again
+    hardwareAdapter->Release();
+    hardwareAdapter = nullptr;
+    factory->Release();
+    factory = nullptr;
+}
+
+void DX12Renderer::getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** adapter)
+{
+    IDXGIAdapter1* tempAdapter;
+
+    // Reset the current 
+    *adapter = nullptr;
+
+    // Go through all the available hardware adapters that supports D3D12
+    for (UINT i = 0; DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(i, &tempAdapter); ++i)
+    {
+        DXGI_ADAPTER_DESC1 desc;
+        tempAdapter->GetDesc1(&desc);
+
+        // If we only get these, we probably need to use WARP instead..
+        if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+            continue;
+
+        // We found one!
+        if (SUCCEEDED(D3D12CreateDevice(tempAdapter, Options::FeatureLevel, _uuidof(ID3D12Device), nullptr)))
+            break;
+    }
+
+    // Change the current
+    *adapter = tempAdapter;
 }
 
 void DX12Renderer::setWinTitle(const char * title)
 {
-    SDL_SetWindowTitle(this->window, title);
+    SDL_SetWindowTitle(m_SDLWindow, title);
 }
 
 void DX12Renderer::present()
@@ -106,6 +259,85 @@ void DX12Renderer::present()
 
 int DX12Renderer::shutdown()
 {
+    // Remove the SDL Window 
+    SDL_GL_DeleteContext(m_WindowContext);
+    SDL_Quit();
+
+    if (m_SwapChain)
+    {
+        m_SwapChain->Release();
+        m_SwapChain = nullptr;
+    }
+
+    if (m_Device)
+    {
+        m_Device->Release();
+        m_Device = nullptr;
+    }
+
+    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+    {
+        if (m_RenderTargets[i])
+        {
+            m_RenderTargets[i]->Release();
+            m_RenderTargets[i] = nullptr;
+        }
+
+        if (m_CommandAllocator[i])
+        {
+            m_CommandAllocator[i]->Release();
+            m_CommandAllocator[i] = nullptr;
+        }
+    }
+
+    if (m_CommandQueue)
+    {
+        m_CommandQueue->Release();
+        m_CommandQueue = nullptr;
+    }
+
+    if (m_CommandList)
+    {
+        m_CommandList->Release();
+        m_CommandList = nullptr;
+    }
+
+    if (m_RootSignature)
+    {
+        m_RootSignature->Release();
+        m_RootSignature = nullptr;
+    }
+
+    if (m_DescriptorHeap)
+    {
+        m_DescriptorHeap->Release();
+        m_DescriptorHeap = nullptr;
+    }
+
+    if (m_PipelineState)
+    {
+        m_PipelineState->Release();
+        m_PipelineState = nullptr;
+    }
+
+    if (m_GraphicsCommandList)
+    {
+        m_GraphicsCommandList->Release();
+        m_GraphicsCommandList = nullptr;
+    }
+
+    if (m_VertexBuffer)
+    {
+        m_VertexBuffer->Release();
+        m_VertexBuffer = nullptr;
+    }
+
+    if (m_Fence)
+    {
+        m_Fence->Release();
+        m_Fence = nullptr;
+    }
+
     return 0;
 }
 

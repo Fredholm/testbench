@@ -23,9 +23,9 @@ vector<Technique*> techniques;
 vector<Texture2D*> textures;
 vector<Sampler2D*> samplers;
 
-VertexBuffer* pos;
-VertexBuffer* nor;
-VertexBuffer* uvs;
+VertexBuffer* pos = nullptr;
+VertexBuffer* nor = nullptr;
+VertexBuffer* uvs = nullptr;
 
 // forward decls
 void updateScene();
@@ -279,12 +279,15 @@ void shutdown() {
 	{
 		delete(m);
 	};
-	assert(pos->refCount() == 0);
-	delete pos;
-	assert(nor->refCount() == 0);
-	delete nor;
-	assert(uvs->refCount() == 0);
-	delete uvs;
+//	assert(pos->refCount() == 0);
+	if (pos)
+        delete pos;
+//	assert(nor->refCount() == 0);
+	if (nor)
+        delete nor;
+//	assert(uvs->refCount() == 0);
+	if (uvs)
+        delete uvs;
 	
 	for (auto s : samplers)
 	{
@@ -306,6 +309,6 @@ int main(int argc, char *argv[])
 	//renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	//initialiseTestbench();
 	//run();
-	//shutdown();
+	shutdown();
 	return 0;
 };
