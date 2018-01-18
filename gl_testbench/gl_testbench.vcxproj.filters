@@ -90,10 +90,10 @@
     <ClCompile Include="OpenGL\VertexBufferGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="DX12\DX12Renderercpp.cpp">
+    <ClCompile Include="DX12\VertexBuffer_DX12.cpp">
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
-    <ClCompile Include="DX12\VertexBuffer_DX12.cpp">
+    <ClCompile Include="DX12\DX12Renderer.cpp">
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>

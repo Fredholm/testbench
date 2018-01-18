@@ -149,7 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConstantBuffer.cpp" />
-    <ClCompile Include="DX12\DX12Renderercpp.cpp" />
+    <ClCompile Include="DX12\DX12Renderer.cpp" />
     <ClCompile Include="DX12\VertexBuffer_DX12.cpp" />
     <ClCompile Include="OpenGL\ConstantBufferGL.cpp" />
     <ClCompile Include="OpenGL\MaterialGL.cpp" />

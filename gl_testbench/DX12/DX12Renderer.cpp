@@ -7,7 +7,6 @@ DX12Renderer::DX12Renderer()
     m_SwapChain             = nullptr;
     m_Device                = nullptr;
     m_CommandQueue          = nullptr;
-    m_CommandList           = nullptr;
     m_RootSignature         = nullptr;
     m_DescriptorHeap        = nullptr;
     m_PipelineState         = nullptr;
@@ -496,12 +495,6 @@ int DX12Renderer::shutdown()
     {
         m_CommandQueue->Release();
         m_CommandQueue = nullptr;
-    }
-
-    if (m_CommandList)
-    {
-        m_CommandList->Release();
-        m_CommandList = nullptr;
     }
 
     if (m_RootSignature)

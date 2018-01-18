@@ -110,13 +110,12 @@ private:
     //  so this is all new stuff)
     ID3D12CommandAllocator*     m_CommandAllocator[Options::AmountOfFrames];//< Used to back memory for the commands
     ID3D12CommandQueue*         m_CommandQueue;                             //< FIFO scheduler
-    ID3D12CommandList*          m_CommandList;                              //< (Similar to deffered context in D11), Records commands to be used later
+    ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
     ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
 
     // DirectX Other Things
     ID3D12DescriptorHeap*       m_DescriptorHeap;                           //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
-    ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
     
     // DirectX Triangles Things
     ID3D12Resource*             m_VertexBuffer;
