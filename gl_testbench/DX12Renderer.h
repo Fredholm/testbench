@@ -10,9 +10,14 @@
 #include <dxgi1_4.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
-#include "Utility.h"
+#include <D3Dcompiler.h>
 #pragma comment(lib,"D3D12.lib")
 #pragma comment(lib,"DXGI.lib")
+#pragma comment(lib,"D3DCompiler.lib")
+
+// Own Includes
+#include "Utility.h"
+#include "VertexBuffer_DX12.h"
 
 // Common Pointer Object, used once, fuck'em
 #include <wrl.h>
@@ -30,9 +35,10 @@ class DX12Renderer : public Renderer
 private:
     struct Options
     {
-        static const D3D_FEATURE_LEVEL FeatureLevel = D3D_FEATURE_LEVEL_11_0;
-        static const DXGI_FORMAT Format             = DXGI_FORMAT_R8G8B8A8_UNORM;   //< 32bits -> 8 bits per channel including alpha
-        static const UINT AmountOfFrames            = 2;
+        static const D3D12_PRIMITIVE_TOPOLOGY_TYPE Topology     = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        static const D3D_FEATURE_LEVEL FeatureLevel             = D3D_FEATURE_LEVEL_11_0;
+        static const DXGI_FORMAT Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;   //< 32bits -> 8 bits per channel including alpha
+        static const UINT AmountOfFrames                        = 2;
     };
 
 public:
@@ -77,10 +83,15 @@ private:
     HWND                        m_WindowHandle;
     HDC                         m_WindowContext;
     ///////////////////////////////////
-
-    // DirectX 12 Helping Functions
+    
+    // DirectX 12 Initilization
     void initDX12(unsigned int width, unsigned int height);
+    void loadPipeline(unsigned int width, unsigned int height);
+    void loadAssets();
+
+    // DirectX 12 Helper Functions
     void getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** adapter);
+    void waitForTheGPU();
 
     // Graphical Vars
     CD3DX12_VIEWPORT            m_Viewport;
@@ -119,13 +130,13 @@ private:
 /* 
 
     Copied from Lecture for ref.
-    1. Find D3D12 compliant adapter
-    2. Create D3D12 device
-    3. Create command queue/allocator/list
+    \check 1. Find D3D12 compliant adapter
+    \check 2. Create D3D12 device
+    \check 3. Create command queue/allocator/list
     4. Create fence
-    5. Create swap chain
-    6. Create render target descriptors
-    7. Define viewport and scissor rect
+    \check 5. Create swap chain
+    \check 6. Create render target descriptors
+    \check 7. Define viewport and scissor rect
     8. Create root signature
     9. Create vertex and pixel shaders
     10. Create pipeline state

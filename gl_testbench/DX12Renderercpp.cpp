@@ -105,7 +105,7 @@ void DX12Renderer::initSDLWindow(unsigned int width, unsigned int height)
     }
 
     // Create the SDL window
-    m_SDLWindow = SDL_CreateWindow("DirectX12", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_BORDERLESS);
+    m_SDLWindow = SDL_CreateWindow("DirectX12", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     // Get Window Information
     struct SDL_SysWMinfo wmInfo;
@@ -120,6 +120,12 @@ void DX12Renderer::initSDLWindow(unsigned int width, unsigned int height)
 
 void DX12Renderer::initDX12(unsigned int width, unsigned int height)
 {
+    loadPipeline(width, height);
+    loadAssets();
+}
+
+void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
+{
     // Setting start variables
     m_RenderTargetViewDescSize  = 0;
     m_FrameIndex                = 0;
@@ -128,9 +134,9 @@ void DX12Renderer::initDX12(unsigned int width, unsigned int height)
     m_Viewport                  = CD3DX12_VIEWPORT(0.f, 0.f, width, height);
     m_ScissorRect               = CD3DX12_RECT(0.f, 0.f, LONG(width), LONG(height));
 
-    /* */
-    /* Loading Pipeline * *.
-    /* */
+    /************************/
+    /*  Loading Pipeline    */
+    /************************/
 
     /*
         Creation of the Device
@@ -160,23 +166,23 @@ void DX12Renderer::initDX12(unsigned int width, unsigned int height)
     */
 
     D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {}; // Reset
-    commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    commandQueueDesc.Flags  = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    commandQueueDesc.Type   = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&m_CommandQueue)));
-    
+
     /*
         Creation of the Swap Chain
     */
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-    swapChainDesc.BufferCount       = Options::AmountOfFrames;
-    swapChainDesc.Width             = width;
-    swapChainDesc.Height            = height;
-    swapChainDesc.Format            = Options::Format;
-    swapChainDesc.BufferUsage       = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.SwapEffect        = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.SampleDesc.Count  = 1;
+    swapChainDesc.BufferCount           = Options::AmountOfFrames;
+    swapChainDesc.Width                 = width;
+    swapChainDesc.Height                = height;
+    swapChainDesc.Format                = Options::Format;
+    swapChainDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.SampleDesc.Count      = 1;
 
     ComPtr<IDXGISwapChain1> swapChain;
     ThrowIfFailed(factory->CreateSwapChainForHwnd(m_CommandQueue, m_WindowHandle, &swapChainDesc, nullptr, nullptr, &swapChain));
@@ -193,8 +199,8 @@ void DX12Renderer::initDX12(unsigned int width, unsigned int height)
 
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
     renderTargetViewHeapDesc.NumDescriptors = Options::AmountOfFrames;
-    renderTargetViewHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    renderTargetViewHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_DescriptorHeap)));
     m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -222,6 +228,124 @@ void DX12Renderer::initDX12(unsigned int width, unsigned int height)
     factory = nullptr;
 }
 
+void DX12Renderer::loadAssets()
+{
+    /*******************************************/
+    /*  Loading Resources Needed for assets    */
+    /*******************************************/
+
+    /*
+        Creation of EMPTY Root Signature
+    */
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    ID3DBlob* signature;
+    ID3DBlob* error;
+    ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
+
+
+    /*
+        Creation of Shaders
+    */
+    ID3DBlob* vertexShader;
+    ID3DBlob* pixelShader;
+
+#if defined(_DEBUG)
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    UINT compileFlags = 0;
+#endif
+
+    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr));
+    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr));
+
+    D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },    // 12 Bytes = 3 * 4
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }    // 16 Bytes = 4 * 4
+    };
+
+    /*
+        Creation of Graphical Pipeline State
+    */
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc    = {};
+    pipelineStateDesc.InputLayout                           = { inputElementDesc, __crt_countof(inputElementDesc) };
+    pipelineStateDesc.pRootSignature                        = m_RootSignature;
+    pipelineStateDesc.VS                                    = CD3DX12_SHADER_BYTECODE(vertexShader);
+    pipelineStateDesc.PS                                    = CD3DX12_SHADER_BYTECODE(pixelShader);
+    pipelineStateDesc.RasterizerState                       = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    pipelineStateDesc.BlendState                            = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    pipelineStateDesc.DepthStencilState.DepthEnable         = FALSE;
+    pipelineStateDesc.DepthStencilState.StencilEnable       = FALSE;
+    pipelineStateDesc.SampleMask                            = UINT_MAX;
+    pipelineStateDesc.PrimitiveTopologyType                 = Options::Topology;
+    pipelineStateDesc.NumRenderTargets                      = 1;
+    pipelineStateDesc.RTVFormats[0]                         = Options::Format;
+    pipelineStateDesc.SampleDesc.Count                      = 1;
+    ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
+
+    /*
+        Creation of Command List
+    */
+
+    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator[m_FrameIndex], m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
+    ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready
+
+
+    /*
+        Creation of Vertex Buffer (Move this over to VertexBuffer_DX12.h & .cpp when you have things working here)
+    */
+
+    Vertex trianglesVertices[] = 
+    {
+            { { 0.0f,   0.25f,  0.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
+            { { 0.25f,  -0.25f, 0.0f },{ 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.25f, -0.25f, 0.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } }
+    };
+
+    const UINT vertexBufferSize = sizeof(trianglesVertices);
+
+    // \note Using Heap Upload to transfer static data is not good or fast.
+    //  where are using it in this project for simplicity (and the guide that I followed along used it ^.^)
+    ThrowIfFailed(m_Device->CreateCommittedResource(
+        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&m_VertexBuffer)
+    ));
+
+    // Copy the triangle data to the vertex buffer
+    UINT8* vertexDataStart;
+    CD3DX12_RANGE readRange(0, 0); // Not intended for the CPU to read
+    ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, (void**)&vertexDataStart));
+    memcpy(vertexDataStart, trianglesVertices, sizeof(trianglesVertices));
+    m_VertexBuffer->Unmap(0, nullptr);
+
+    // Initialize the Vertex Buffer View
+    m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
+    m_VertexBufferView.SizeInBytes = sizeof(Vertex);
+    m_VertexBufferView.StrideInBytes = vertexBufferSize;
+
+    /*
+        Creation of Objects used for Syncing GPU and CPU
+    */
+    
+    ThrowIfFailed(m_Device->CreateFence(m_FenceValue[m_FrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+    m_FenceValue[m_FrameIndex]++;
+
+    m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (!m_FenceEvent)
+        ThrowWithMessage(0x80004003, __FILE__, __LINE__);
+
+    // Setup is done, just for safety, we wait for the GPU, until we start the commands
+    waitForTheGPU();
+}
+
 void DX12Renderer::getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** adapter)
 {
     IDXGIAdapter1* tempAdapter;
@@ -246,6 +370,19 @@ void DX12Renderer::getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** ad
 
     // Change the current
     *adapter = tempAdapter;
+}
+
+void DX12Renderer::waitForTheGPU()
+{
+    // Send a signal to the command queue
+    ThrowIfFailed(m_CommandQueue->Signal(m_Fence, m_FenceValue[m_FrameIndex]));
+
+    // Wait until the fence (GPU is done) has been processed
+    ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue[m_FrameIndex], m_FenceEvent));
+    WaitForSingleObjectEx(m_FenceEvent, INFINITE, FALSE);
+
+    // Increase the fence value for the current frame
+    m_FenceValue[m_FrameIndex]++;
 }
 
 void DX12Renderer::setWinTitle(const char * title)
