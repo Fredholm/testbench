@@ -143,9 +143,10 @@ private:
     \check 8. Create root signature
     \check 9. Create vertex and pixel shaders
     \check 10. Create pipeline state
-    11. (Create constant buffer resources)
+    \check 11. (Create constant buffer resources)
     \check 12. Create vertex buffer resources
-    13. Draw (which includes a lot of stuff )
+    \check 13. Draw (which includes a lot of stuff )
+    Ez.
 
 */
 
