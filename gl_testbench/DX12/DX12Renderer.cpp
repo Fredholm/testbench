@@ -298,7 +298,6 @@ void DX12Renderer::loadAssets()
         Creation of Vertex Buffer (Move this over to VertexBuffer_DX12.h & .cpp when you have things working here)
     */
 
-
     Vertex trianglesVertices[] = 
     {
             { { 0.0f, 0.25f * m_AspectRatio, 0.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
