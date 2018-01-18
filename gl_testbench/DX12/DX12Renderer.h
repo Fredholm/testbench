@@ -92,13 +92,13 @@ private:
     // DirectX 12 Helper Functions
     void getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** adapter);
     void waitForTheGPU();
-    void addToCommandList();
     void moveToNextFrame();
 
     // Graphical Vars
     float                       m_AspectRatio;
     CD3DX12_VIEWPORT            m_Viewport;
     CD3DX12_RECT                m_ScissorRect;
+    float                       m_ClearColor[4];
 
     // DirectX12 Pipeline
     IDXGISwapChain3*            m_SwapChain;                                //< IDXGISwapChain3::GetCurrentBackBufferIndex to choose which Render Target View to render to each frame

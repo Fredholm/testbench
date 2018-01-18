@@ -387,9 +387,6 @@ void DX12Renderer::waitForTheGPU()
 
 void DX12Renderer::present()
 {
-    // Add all the commands needed to render scene
-    addToCommandList();
-
     // Open for more command lists in the future
     ID3D12CommandList* pCommandLists[] = { m_GraphicsCommandList };
     m_CommandQueue->ExecuteCommandLists(_countof(pCommandLists), pCommandLists);
@@ -398,36 +395,6 @@ void DX12Renderer::present()
     ThrowIfFailed(m_SwapChain->Present(1, 0));
 
     moveToNextFrame();
-}
-
-void DX12Renderer::addToCommandList()
-{
-    // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
-    ThrowIfFailed(m_CommandAllocator[m_FrameIndex]->Reset());
-    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator[m_FrameIndex], m_PipelineState));
-
-    // Yes, we need to set these every time..
-    m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
-    m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
-    m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
-
-    // Tell the command list that we're using the backbuffer as the render target
-    m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RenderTargetViewDescSize);
-    m_GraphicsCommandList->OMSetRenderTargets(1, &renderTargetViewHandle, FALSE, nullptr);
-
-    // Record some commands 
-    const float clearColor[] = { 0.4f, 0.5f, 0.8f, 1.f };
-    m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, clearColor, 0, nullptr);
-    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_GraphicsCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-    m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
-
-    // Indicate that the back buffer will be present
-    m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
-    ThrowIfFailed(m_GraphicsCommandList->Close());
 }
 
 void DX12Renderer::moveToNextFrame()
@@ -453,6 +420,63 @@ void DX12Renderer::moveToNextFrame()
 void DX12Renderer::setWinTitle(const char * title)
 {
     SDL_SetWindowTitle(m_SDLWindow, title);
+}
+
+void DX12Renderer::setClearColor(float r, float g, float b, float a)
+{
+    m_ClearColor[0] = r;
+    m_ClearColor[1] = g;
+    m_ClearColor[2] = b;
+    m_ClearColor[3] = a;
+}
+
+void DX12Renderer::clearBuffer(unsigned int flag)
+{
+    // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
+    ThrowIfFailed(m_CommandAllocator[m_FrameIndex]->Reset());
+    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator[m_FrameIndex], m_PipelineState));
+
+    // Yes, we need to set these every time..
+    m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
+    m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
+    m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
+
+    // Tell the command list that we're using the backbuffer as the render target
+    m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RenderTargetViewDescSize);
+    m_GraphicsCommandList->OMSetRenderTargets(1, &renderTargetViewHandle, FALSE, nullptr);
+
+    // Record some commands 
+    m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
+
+    // TODO
+    /* Clear the non-existant depth buffer */
+    // m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
+}
+
+void DX12Renderer::setRenderState(RenderState* ps)
+{
+}
+
+void DX12Renderer::submit(Mesh* mesh)
+{
+}
+
+void DX12Renderer::frame()
+{
+    // Add all the commands needed to render scene
+    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_GraphicsCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+   
+    // Loop all the meshes here:
+    // ******now there's just one constant mesh created for testing
+    m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
+
+    // Indicate that the back buffer will be present
+    m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+    ThrowIfFailed(m_GraphicsCommandList->Close());
 }
 
 int DX12Renderer::shutdown()
@@ -534,25 +558,4 @@ int DX12Renderer::shutdown()
     }
 
     return 0;
-}
-
-void DX12Renderer::setClearColor(float r, float g, float b, float a)
-{
-}
-
-void DX12Renderer::clearBuffer(unsigned int)
-{
-}
-
-void DX12Renderer::setRenderState(RenderState * ps)
-{
-}
-
-void DX12Renderer::submit(Mesh * mesh)
-{
-}
-
-void DX12Renderer::frame()
-{
-
 }

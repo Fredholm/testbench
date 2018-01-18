@@ -82,7 +82,7 @@ void run() {
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
-		updateScene();
+		// updateScene();
 		renderScene();
 	}
 }
@@ -125,7 +125,7 @@ void renderScene()
 	renderer->frame();
 	renderer->present();
 	updateDelta();
-	sprintf(gTitleBuff, "OpenGL - %3.0lf", gLastDelta);
+	sprintf(gTitleBuff, "DirectX - %3.0lf", gLastDelta);
 	renderer->setWinTitle(gTitleBuff);
 }
 
@@ -306,16 +306,9 @@ int main(int argc, char *argv[])
 	renderer = Renderer::makeRenderer(Renderer::BACKEND::DX12);
 	renderer->initialize(800,600);
 	renderer->setWinTitle("DirectX12");
-      
-    while (1)
-    {
-        renderer->frame();
-        renderer->present();
-    }
-
-	//renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
+    renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	//initialiseTestbench();
-	//run();
+	run();
 	shutdown();
 	return 0;
 };
