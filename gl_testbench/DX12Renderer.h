@@ -96,6 +96,7 @@ private:
     void moveToNextFrame();
 
     // Graphical Vars
+    float                       m_AspectRatio;
     CD3DX12_VIEWPORT            m_Viewport;
     CD3DX12_RECT                m_ScissorRect;
 
