@@ -134,13 +134,10 @@ int initialiseTestbench()
 	std::string definePos = "#define POSITION " + std::to_string(POSITION) + "\n";
 	std::string defineNor = "#define NORMAL " + std::to_string(NORMAL) + "\n";
 	std::string defineUV = "#define TEXTCOORD " + std::to_string(TEXTCOORD) + "\n";
-
 	std::string defineTX = "#define TRANSLATION " + std::to_string(TRANSLATION) + "\n";
 	std::string defineTXName = "#define TRANSLATION_NAME " + std::string(TRANSLATION_NAME) + "\n";
-	
 	std::string defineDiffCol = "#define DIFFUSE_TINT " + std::to_string(DIFFUSE_TINT) + "\n";
 	std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME) + "\n";
-
 	std::string defineDiffuse = "#define DIFFUSE_SLOT " + std::to_string(DIFFUSE_SLOT) + "\n";
 
 	std::vector<std::vector<std::string>> materialDefs = {
