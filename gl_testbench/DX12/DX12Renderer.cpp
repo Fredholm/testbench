@@ -23,10 +23,9 @@ DX12Renderer::DX12Renderer()
 
 DX12Renderer::~DX12Renderer() { }
 
-Mesh * DX12Renderer::makeMesh()
+Mesh* DX12Renderer::makeMesh()
 {
-    //  return new Mesh_DX12();
-    return nullptr;
+    return (Mesh*)new Mesh_DX12();
 }
 
 Texture2D * DX12Renderer::makeTexture2D()

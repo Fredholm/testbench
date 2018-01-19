@@ -18,6 +18,8 @@
 // Own Includes
 #include "Utility.h"
 #include "VertexBuffer_DX12.h"
+#include "Mesh_DX12.h"
+#include "Material_DX12.h"
 
 // Common Pointer Object, used once, fuck'em
 #include <wrl.h>
