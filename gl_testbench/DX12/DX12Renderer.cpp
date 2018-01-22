@@ -1,8 +1,12 @@
 #include "DX12Renderer.h"
 
-DX12Renderer::DX12Renderer() 
-    : m_FenceValue{}
+#define NAME_D3D12_OBJECT(x) SetName(x.Get(), L#x)
+#define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed(x[n].Get(), L#x, n)
+
+DX12Renderer::DX12Renderer()
 {
+    ZeroMemory(m_FenceValue, sizeof(m_FenceValue));
+
     m_SDLWindow             = nullptr;
     m_SwapChain             = nullptr;
     m_Device                = nullptr;
@@ -42,7 +46,7 @@ Sampler2D * DX12Renderer::makeSampler2D()
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap);
+    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap, Options::AmountOfFrames, m_ConstantBufferViewDescSize);
 }
 
 RenderState * DX12Renderer::makeRenderState()
@@ -124,11 +128,12 @@ void DX12Renderer::initDX12(unsigned int width, unsigned int height)
 void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 {
     // Setting start variables
-    m_RenderTargetViewDescSize  = 0;
-    m_FrameIndex                = 0;
-    m_Viewport                  = CD3DX12_VIEWPORT(0.0f, 0.0f, width, height);
-    m_ScissorRect               = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
-    m_AspectRatio               = float(width) / float(height);
+    m_RenderTargetViewDescSize      = 0;
+    m_ConstantBufferViewDescSize    = 0;
+    m_FrameIndex                    = 0;
+    m_Viewport                      = CD3DX12_VIEWPORT(0.0f, 0.0f, width, height);
+    m_ScissorRect                   = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
+    m_AspectRatio                   = float(width) / float(height);
 
     /************************/
     /*  Loading Pipeline    */
@@ -199,16 +204,16 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
-   
-    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     // Describe and create a constant buffer view (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
-    constantBufferHeapdesc.NumDescriptors  = 1;
-    constantBufferHeapdesc.Type            = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    constantBufferHeapdesc.Flags           = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
+    constantBufferHeapdesc.NumDescriptors   = Options::AmountOfFrames;
+    constantBufferHeapdesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    constantBufferHeapdesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
 
+    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_ConstantBufferViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     /*
         Creation of Command Allocater resources
@@ -431,8 +436,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
     ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
- 
-//    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);

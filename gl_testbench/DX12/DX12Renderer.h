@@ -122,6 +122,7 @@ private:
     ID3D12DescriptorHeap*       m_cbDescriptorHeap;
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
     UINT                        m_RenderTargetViewDescSize;
+    UINT                        m_ConstantBufferViewDescSize;
 
     // DirectX Fence Sync
     ID3D12Fence*                m_Fence;                                    //< Used to jump between and sync GPU and CPU
