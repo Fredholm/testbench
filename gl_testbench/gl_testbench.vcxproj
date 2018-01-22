@@ -181,9 +181,9 @@
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DX12\DX12Renderer.h" />
     <ClInclude Include="DX12\Material_DX12.h" />
+    <ClInclude Include="DX12\Mesh_DX12.h" />
     <ClInclude Include="DX12\Utility.h" />
     <ClInclude Include="DX12\VertexBuffer_DX12.h" />
-    <ClInclude Include="Mesh_DX12.h" />
     <ClInclude Include="OpenGL\ConstantBufferGL.h" />
     <ClInclude Include="OpenGL\MaterialGL.h" />
     <ClInclude Include="OpenGL\MeshGL.h" />

@@ -100,7 +100,7 @@
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
     <ClCompile Include="DX12\Mesh_DX12.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -188,7 +188,7 @@
     <ClInclude Include="DX12\Material_DX12.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh_DX12.h">
+    <ClInclude Include="DX12\Mesh_DX12.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
   </ItemGroup>

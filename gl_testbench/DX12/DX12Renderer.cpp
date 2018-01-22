@@ -11,7 +11,6 @@ DX12Renderer::DX12Renderer()
     m_DescriptorHeap        = nullptr;
     m_PipelineState         = nullptr;
     m_GraphicsCommandList   = nullptr;
-    m_VertexBuffer          = nullptr;
     m_Fence                 = nullptr;
 
     for (UINT i = 0; i < Options::AmountOfFrames; i++)
@@ -67,8 +66,7 @@ std::string DX12Renderer::getShaderExtension()
 
 VertexBuffer * DX12Renderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_USAGE usage)
 {
-    //  return new VertexBuffer_DX12(size, usage);
-    return nullptr;
+    return new VertexBuffer_DX12(size, usage, m_Device);
 }
 
 Material * DX12Renderer::makeMaterial(const std::string & name)
@@ -292,43 +290,6 @@ void DX12Renderer::loadAssets()
     ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator[m_FrameIndex], m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
     ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
 
-
-    /*
-        Creation of Vertex Buffer (Move this over to VertexBuffer_DX12.h & .cpp when you have things working here)
-    */
-
-    Vertex trianglesVertices[] = 
-    {
-            { { 0.0f, 0.25f * m_AspectRatio, 0.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
-            { { 0.25f, -0.25f * m_AspectRatio, 0.0f },{ 0.0f, 1.0f, 0.0f, 1.0f } },
-            { { -0.25f, -0.25f * m_AspectRatio, 0.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } }
-    };
-
-    const UINT vertexBufferSize = sizeof(trianglesVertices);
-
-    // \note Using Heap Upload to transfer static data is not good or fast.
-    //  where are using it in this project for simplicity (and the guide that I followed along used it ^.^)
-    ThrowIfFailed(m_Device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&m_VertexBuffer)
-    ));
-
-    // Copy the triangle data to the vertex buffer
-    UINT8* vertexDataStart;
-    CD3DX12_RANGE readRange(0, 0); // Not intended for the CPU to read
-    ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataStart)));
-    memcpy(vertexDataStart, trianglesVertices, sizeof(trianglesVertices));
-    m_VertexBuffer->Unmap(0, nullptr);
-
-    // Initialize the Vertex Buffer View
-    m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-    m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-    m_VertexBufferView.SizeInBytes = vertexBufferSize;
-
     /*
         Creation of Objects used for Syncing GPU and CPU
     */
@@ -459,14 +420,14 @@ void DX12Renderer::setRenderState(RenderState* ps)
 
 void DX12Renderer::submit(Mesh* mesh)
 {
+    // Add all the commands needed to render scene
+    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_GraphicsCommandList->IASetVertexBuffers(0, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[0].buffer)->getVertexBufferView());
 }
 
 void DX12Renderer::frame()
 {
-    // Add all the commands needed to render scene
-    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_GraphicsCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-   
+  
     // Loop all the meshes here:
     // ******now there's just one constant mesh created for testing
     m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
@@ -541,12 +502,6 @@ int DX12Renderer::shutdown()
     {
         m_GraphicsCommandList->Release();
         m_GraphicsCommandList = nullptr;
-    }
-
-    if (m_VertexBuffer)
-    {
-        m_VertexBuffer->Release();
-        m_VertexBuffer = nullptr;
     }
 
     if (m_Fence)

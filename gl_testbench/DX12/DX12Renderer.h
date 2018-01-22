@@ -118,10 +118,6 @@ private:
     // DirectX Other Things
     ID3D12DescriptorHeap*       m_DescriptorHeap;                           //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
-    
-    // DirectX Triangles Things
-    ID3D12Resource*             m_VertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW    m_VertexBufferView;
     UINT                        m_RenderTargetViewDescSize;
 
     // DirectX Fence Sync

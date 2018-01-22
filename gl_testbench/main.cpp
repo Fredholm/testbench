@@ -82,7 +82,7 @@ void run() {
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
-		updateScene();
+	//	updateScene();
 		renderScene();
 	}
 }
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 	renderer->initialize(800,600);
 	renderer->setWinTitle("DirectX12");
     renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
-//	initialiseTestbench();
+	initialiseTestbench();
 	run();
 	shutdown();
 	return 0;
