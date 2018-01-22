@@ -18,8 +18,7 @@ using namespace DirectX;
 
 struct Vertex
 {
-    XMFLOAT3 position;
-    XMFLOAT4 color;
+    XMFLOAT4 position;
 };
 
 class VertexBuffer_DX12 : public VertexBuffer
@@ -36,8 +35,10 @@ public:
     D3D12_VERTEX_BUFFER_VIEW* getVertexBufferView() { return &m_VertexBufferView; }
 
 private:
+    size_t m_Size;
     ID3D12Resource* m_VertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+    UINT8* m_VertexDataStart;
 };
 
 #endif // !VERTEXBUFFER_DX12_H

@@ -422,15 +422,24 @@ void DX12Renderer::submit(Mesh* mesh)
 {
     // Add all the commands needed to render scene
     m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_GraphicsCommandList->IASetVertexBuffers(0, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[0].buffer)->getVertexBufferView());
+//    m_GraphicsCommandList->IASetVertexBuffers(0, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[0].buffer)->getVertexBufferView());
+
+    m_DrawList.push_back(mesh);
 }
 
 void DX12Renderer::frame()
 {
-  
+    for (Mesh* mesh : m_DrawList)
+    {
+        size_t numberElements = mesh->geometryBuffers[0].numElements;
+        for (auto element : mesh->geometryBuffers) {
+            m_GraphicsCommandList->IASetVertexBuffers(element.first, 1, static_cast<VertexBuffer_DX12*>(element.second.buffer)->getVertexBufferView());
+        }
+    }
+
     // Loop all the meshes here:
     // ******now there's just one constant mesh created for testing
-    m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
+    m_GraphicsCommandList->DrawInstanced(3, m_DrawList.size(), 0, 0);
 
     // Indicate that the back buffer will be present
     m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

@@ -97,6 +97,7 @@ private:
     void moveToNextFrame();
 
     // Graphical Vars
+    std::vector<Mesh*>          m_DrawList;
     float                       m_AspectRatio;
     CD3DX12_VIEWPORT            m_Viewport;
     CD3DX12_RECT                m_ScissorRect;
