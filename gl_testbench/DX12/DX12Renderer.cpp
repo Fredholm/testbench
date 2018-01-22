@@ -420,6 +420,11 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
     // Yes, we need to set these every time..
     m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
+
+    //ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
+    //m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    //m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
 
@@ -432,6 +437,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     // Record some commands 
     m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
 
+
     // TODO
     /* Clear the non-existant depth buffer */
     // m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
@@ -443,15 +449,14 @@ void DX12Renderer::setRenderState(RenderState* ps)
 
 void DX12Renderer::submit(Mesh* mesh)
 {
-    // Add all the commands needed to render scene
-    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-//    m_GraphicsCommandList->IASetVertexBuffers(0, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[0].buffer)->getVertexBufferView());
-
     m_DrawList.push_back(mesh);
 }
 
 void DX12Renderer::frame()
 {
+    // Set the Topology
+    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     // Adding meshes to to drawing
     for (Mesh* mesh : m_DrawList)
     {
