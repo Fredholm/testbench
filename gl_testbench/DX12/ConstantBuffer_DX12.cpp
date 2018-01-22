@@ -5,9 +5,8 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     m_ConstantBuffer                = nullptr;
     m_pCbvDataBegin                 = nullptr;
     m_pDevice                       = device;
-    m_pDescHeap                     = descHeap;
 
-    m_ConstantData.offset = DirectX::XMFLOAT4(1, 2, 3, 4);
+    m_ConstantData.offset = DirectX::XMFLOAT4(1.f, 2.f, 3.f, 4.f);
 
     ThrowIfFailed(device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
@@ -21,20 +20,21 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
     cbvDesc.BufferLocation = m_ConstantBuffer->GetGPUVirtualAddress();
     cbvDesc.SizeInBytes = (sizeof(SceneConstantBuffer) + 255) & ~255;
-    m_pDevice->CreateConstantBufferView(&cbvDesc, m_pDescHeap->GetCPUDescriptorHandleForHeapStart());
+    m_pDevice->CreateConstantBufferView(&cbvDesc, descHeap->GetCPUDescriptorHandleForHeapStart());
 
     // Map and initialize the constant buffer. We don't unmap this until the
     // app closes. Keeping things mapped for the lifetime of the resource is okay.
     CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
     ThrowIfFailed(m_ConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin)));
     memcpy(m_pCbvDataBegin, &m_ConstantData, sizeof(m_ConstantData));
+
 }
 
 ConstantBuffer_DX12::~ConstantBuffer_DX12()
 {
     if (m_ConstantBuffer)
     {
-        delete m_ConstantBuffer;
+        m_ConstantBuffer->Release();
         m_ConstantBuffer = nullptr;
     }
 }

@@ -21,9 +21,7 @@ public:
     void bind(Material* material);
 
 private:
-    ID3D12DescriptorHeap* m_pDescHeap;
     ID3D12Device* m_pDevice;
-    
     ID3D12Resource* m_ConstantBuffer;
     SceneConstantBuffer m_ConstantData;
     UINT8* m_pCbvDataBegin;

@@ -198,16 +198,15 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     renderTargetViewHeapDesc.NumDescriptors = Options::AmountOfFrames;
     renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
+   
     m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     // Describe and create a constant buffer view (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
     constantBufferHeapdesc.NumDescriptors  = 1;
-    constantBufferHeapdesc.Flags           = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     constantBufferHeapdesc.Type            = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
+    constantBufferHeapdesc.Flags           = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
 
 
@@ -244,18 +243,29 @@ void DX12Renderer::loadAssets()
         Creation of EMPTY Root Signature
     */
     D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+
+    // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
     featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    if (!SUCCEEDED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+
+    if (FAILED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
     CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
     CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[0].InitAsDescriptorTable(1, &ranges[0]);
+    rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+
+    // Allow input layout and deny uneccessary access to certain pipeline stages.
+    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+        D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
 
     ID3DBlob* signature;
     ID3DBlob* error;
@@ -318,7 +328,7 @@ void DX12Renderer::loadAssets()
     */
     
     ThrowIfFailed(m_Device->CreateFence(m_FenceValue[m_FrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
-    m_FenceValue[m_FrameIndex]++;
+    m_FenceValue[m_FrameIndex] = 1;
 
     m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (m_FenceEvent == nullptr)
@@ -418,12 +428,11 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     ThrowIfFailed(m_CommandAllocator[m_FrameIndex]->Reset());
     ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator[m_FrameIndex], m_PipelineState));
 
-    // Yes, we need to set these every time..
     m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
-
-    //ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
-    //m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-    //m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
+    m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+ 
+    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
