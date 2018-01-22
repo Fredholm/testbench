@@ -436,7 +436,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
     ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+ //   m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
