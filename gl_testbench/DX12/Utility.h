@@ -50,7 +50,7 @@ inline void ThrowWithMessage(HRESULT hr, const char * file, size_t line)
         err << translateHR(hr) << std::endl;
         printf("%s\n", err.str().c_str());
         OutputDebugStringA(err.str().c_str());
-        __debugbreak();
+     //   __debugbreak();
         throw com_exception(hr);
     }
 }

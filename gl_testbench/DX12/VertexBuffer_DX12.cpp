@@ -6,7 +6,7 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     this->m_Size = size;
 
     // \note Using Heap Upload to transfer static data is not good or fast.
-    //  where are using it in this project for simplicity (and the guide that I followed along used it ^.^)
+    //  We're are using it in this project for simplicity (and the guide that I followed along used it ^.^)
     ThrowIfFailed(device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,

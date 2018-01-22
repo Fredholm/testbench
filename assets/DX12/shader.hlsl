@@ -1,13 +1,24 @@
+struct VS_INPUT
+{
+    float4 position : POSITION;
+    float4 normal : NORMAL;
+    float2 tex : TEXCOORD;
+};
+
 struct PSInput
 {
 	float4 position : SV_POSITION;
+    float4 normal : NORMAL;
+    float2 tex : TEXCOORD;
 };
 
-PSInput VSMain(float4 position : POSITION)
+PSInput VSMain(VS_INPUT input)
 {
 	PSInput result;
 
-	result.position = position;
+    result.position = input.position;
+    result.normal = input.normal;
+    result.tex = input.tex;
 
 	return result;
 }
