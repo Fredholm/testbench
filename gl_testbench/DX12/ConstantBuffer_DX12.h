@@ -23,8 +23,10 @@ public:
 private:
     ID3D12DescriptorHeap* m_pDescHeap;
     ID3D12Device* m_pDevice;
+    
     ID3D12Resource* m_ConstantBuffer;
-    void* m_pConstantBufferDataBegin;
+    SceneConstantBuffer m_ConstantData;
+    UINT8* m_pCbvDataBegin;
 };
 
 #endif // !CONSTANTBUFFER_DX12_H

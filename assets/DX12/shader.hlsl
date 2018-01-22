@@ -1,3 +1,8 @@
+cbuffer SceneConstantBuffer : register(b0)
+{
+    float4 tx;
+};
+
 struct VS_INPUT
 {
     float4 position : POSITION;
@@ -12,16 +17,11 @@ struct PSInput
     float2 tex : TEXCOORD;
 };
 
-cbuffer TranslationBlock : register(b0)
-{
-    matrix tx;
-};
-
 PSInput VSMain(VS_INPUT input)
 {
 	PSInput result;
 
-    result.position = input.position;
+    result.position = input.position + tx;
     result.normal = input.normal;
     result.tex = input.tex;
 
