@@ -20,6 +20,7 @@
 #include "VertexBuffer_DX12.h"
 #include "Mesh_DX12.h"
 #include "Material_DX12.h"
+#include "ConstantBuffer_DX12.h"
 
 // Common Pointer Object, used once, fuck'em
 #include <wrl.h>
@@ -117,7 +118,8 @@ private:
     ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
 
     // DirectX Other Things
-    ID3D12DescriptorHeap*       m_DescriptorHeap;                           //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                           //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_cbDescriptorHeap;
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
     UINT                        m_RenderTargetViewDescSize;
 

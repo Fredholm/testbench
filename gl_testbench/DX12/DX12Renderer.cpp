@@ -8,7 +8,8 @@ DX12Renderer::DX12Renderer()
     m_Device                = nullptr;
     m_CommandQueue          = nullptr;
     m_RootSignature         = nullptr;
-    m_DescriptorHeap        = nullptr;
+    m_cbDescriptorHeap      = nullptr;
+    m_rtDescriptorHeap      = nullptr;
     m_PipelineState         = nullptr;
     m_GraphicsCommandList   = nullptr;
     m_Fence                 = nullptr;
@@ -41,8 +42,7 @@ Sampler2D * DX12Renderer::makeSampler2D()
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-    //  return new ConstantBuffer_DX12(NAME, location);
-    return nullptr;
+    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap);
 }
 
 RenderState * DX12Renderer::makeRenderState()
@@ -190,22 +190,32 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     /*
-        Creation of the Render Target Binding Descriptor Heap
+        Creation of the Descriptor Heap
     */
 
+    // Render Targets
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
     renderTargetViewHeapDesc.NumDescriptors = Options::AmountOfFrames;
     renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_DescriptorHeap)));
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
     m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+    // Describe and create a constant buffer view (CBV) descriptor heap.
+    D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
+    constantBufferHeapdesc.NumDescriptors  = 1;
+    constantBufferHeapdesc.Flags           = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
+    constantBufferHeapdesc.Type            = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
+
 
     /*
         Creation of Command Allocater resources
     */
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_rtDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
     // Create a Render Target View and a Command Allocator for each frame
     for (UINT i = 0; i < Options::AmountOfFrames; i++)
@@ -404,7 +414,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     // Tell the command list that we're using the backbuffer as the render target
     m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RenderTargetViewDescSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_rtDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RenderTargetViewDescSize);
     m_GraphicsCommandList->OMSetRenderTargets(1, &renderTargetViewHandle, FALSE, nullptr);
 
     // Record some commands 
@@ -496,10 +506,16 @@ int DX12Renderer::shutdown()
         m_RootSignature = nullptr;
     }
 
-    if (m_DescriptorHeap)
+    if (m_rtDescriptorHeap)
     {
-        m_DescriptorHeap->Release();
-        m_DescriptorHeap = nullptr;
+        m_rtDescriptorHeap->Release();
+        m_rtDescriptorHeap = nullptr;
+    }
+
+    if (m_cbDescriptorHeap)
+    {
+        m_cbDescriptorHeap->Release();
+        m_cbDescriptorHeap = nullptr;
     }
 
     if (m_PipelineState)

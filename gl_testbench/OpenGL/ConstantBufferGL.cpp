@@ -1,4 +1,4 @@
-#include "ConstantBufferGL.h"
+//#include "ConstantBufferGL.h"
 #include "MaterialGL.h"
 
 ConstantBufferGL::ConstantBufferGL(std::string NAME, unsigned int location) 

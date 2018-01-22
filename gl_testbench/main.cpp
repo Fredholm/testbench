@@ -82,7 +82,7 @@ void run() {
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
-	//	updateScene();
+		updateScene();
 		renderScene();
 	}
 }
@@ -106,7 +106,8 @@ void updateScene()
 				i * (-1.0 / TOTAL_PLACES),
 				0.0
 			};
-			scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
+			// scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
+            scene[i]->txBuffer->setData(&trans, sizeof(trans), nullptr, TRANSLATION);
 		}
 		// just to make them move...
 		shift+=max(TOTAL_TRIS / 1000.0,TOTAL_TRIS / 100.0);
@@ -249,9 +250,9 @@ int initialiseTestbench()
 		uvs->setData(triUV, sizeof(triUV), offset);
 		m->addIAVertexBufferBinding(uvs, offset, numberOfUVElements , sizeof(float2), TEXTCOORD);
 
-		//// we can create a constant buffer outside the material, for example as part of the Mesh.
-		//m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
-		//
+		// we can create a constant buffer outside the material, for example as part of the Mesh.
+		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
+		
 		//m->technique = techniques[ i % 4];
 		//if (i % 4 == 2)
 		//	m->addTexture(textures[0], DIFFUSE_SLOT);

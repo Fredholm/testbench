@@ -12,6 +12,11 @@ struct PSInput
     float2 tex : TEXCOORD;
 };
 
+cbuffer TranslationBlock : register(b0)
+{
+    matrix tx;
+};
+
 PSInput VSMain(VS_INPUT input)
 {
 	PSInput result;
