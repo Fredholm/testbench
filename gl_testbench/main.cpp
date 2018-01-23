@@ -100,17 +100,22 @@ void updateScene()
 		const int size = scene.size();
 		for (int i = 0; i < size; i++)
 		{
-			const float4 trans { 
-				xt[(int)(float)(i + shift) % (TOTAL_PLACES)], 
-				yt[(int)(float)(i + shift) % (TOTAL_PLACES)], 
-				i * (-1.0 / TOTAL_PLACES),
+			const float4 trans{
+				xt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+				yt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+				((double)rand() / RAND_MAX * 0.5f),
 				0.0
 			};
+
+			printf("%f\n", trans.z);
+
+			scene[i]->txBuffer->setData(&trans, sizeof(trans), nullptr, TRANSLATION);
 			// scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
-            scene[i]->txBuffer->setData(&trans, sizeof(trans), nullptr, TRANSLATION);
 		}
+
 		// just to make them move...
-		shift+=max(TOTAL_TRIS / 1000.0,TOTAL_TRIS / 100.0);
+		shift += max(TOTAL_TRIS / 1000.0, TOTAL_TRIS / 100.0);
+
 	}
 	return;
 };
