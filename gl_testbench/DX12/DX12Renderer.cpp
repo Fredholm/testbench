@@ -212,8 +212,8 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     constantBufferHeapdesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
 
-    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_ConstantBufferViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_RenderTargetViewDescSize		= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_ConstantBufferViewDescSize	= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     /*
         Creation of Command Allocater resources
@@ -392,6 +392,9 @@ void DX12Renderer::present()
     ThrowIfFailed(m_SwapChain->Present(1, 0));
 
     moveToNextFrame();
+
+	// TEMP! to avoid removal of Meshes in main.cpp crash
+	waitForTheGPU();
 }
 
 void DX12Renderer::moveToNextFrame()
@@ -433,10 +436,9 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     ThrowIfFailed(m_CommandAllocator[m_FrameIndex]->Reset());
     ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator[m_FrameIndex], m_PipelineState));
 
-    m_GraphicsCommandList->SetComputeRootSignature(m_RootSignature);
     ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
- //   m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
@@ -476,7 +478,9 @@ void DX12Renderer::frame()
         size_t numberElements = mesh->geometryBuffers[0].numElements;
         for (size_t i = 0; i < numberElements; i++)
             m_GraphicsCommandList->IASetVertexBuffers(i, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[i].buffer)->getVertexBufferView());
-    }
+
+		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, static_cast<ConstantBuffer_DX12*>(mesh->txBuffer)->getDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+	}
 
     // Draw all the meshes
     m_GraphicsCommandList->DrawInstanced(3, m_DrawList.size(), 0, 0);
@@ -513,7 +517,8 @@ int DX12Renderer::shutdown()
     {
         if (m_RenderTargets[i])
         {
-            m_RenderTargets[i]->Release();
+			// Fix please
+            // m_RenderTargets[i]->Release();
             m_RenderTargets[i] = nullptr;
         }
 

@@ -10,7 +10,7 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     ThrowIfFailed(device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(m_Size),
+        &CD3DX12_RESOURCE_DESC::Buffer(m_Size * 2),
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&m_VertexBuffer)
@@ -25,6 +25,7 @@ VertexBuffer_DX12::~VertexBuffer_DX12()
 {
     if (m_VertexBuffer)
     {
+		m_VertexBuffer->Unmap(0, nullptr);
         m_VertexBuffer->Release();
         m_VertexBuffer = nullptr;
     }
@@ -34,16 +35,21 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 {
     // Copy the triangle data to the place of the vertex buffer
     memcpy(m_VertexDataStart + offset, data, size);
-    m_VertexBuffer->Unmap(0, nullptr);
+
+	// Remember! when bind() is getting called later on, reenable this!
+	//   m_VertexBuffer->Unmap(0, nullptr);
+
+	printf("Size: %d, Offset: %d, Stride: %d\n", size, offset, size / 3);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;
-    m_VertexBufferView.StrideInBytes = size / 3;
+    m_VertexBufferView.StrideInBytes = (size / 3);
     m_VertexBufferView.SizeInBytes = m_Size;
 }
 
 void VertexBuffer_DX12::bind(size_t offset, size_t size, unsigned int location)
 {
+	printf("ya");
     CD3DX12_RANGE readRange(0, size);
     ThrowIfFailed(m_VertexBuffer->Map(location, &readRange, reinterpret_cast<void**>(m_VertexBufferView.BufferLocation + offset)));
 }
