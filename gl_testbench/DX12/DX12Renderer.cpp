@@ -75,8 +75,7 @@ VertexBuffer * DX12Renderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_US
 
 Material * DX12Renderer::makeMaterial(const std::string & name)
 {
-    //  return (Material*)new Material_DX12();;
-    return nullptr;
+    return (Material*)new Material_DX12();
 }
 
 Technique * DX12Renderer::makeTechnique(Material* material, RenderState* renderState)

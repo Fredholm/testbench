@@ -132,40 +132,40 @@ void renderScene()
 
 int initialiseTestbench()
 {
-	//std::string definePos = "#define POSITION " + std::to_string(POSITION) + "\n";
-	//std::string defineNor = "#define NORMAL " + std::to_string(NORMAL) + "\n";
-	//std::string defineUV = "#define TEXTCOORD " + std::to_string(TEXTCOORD) + "\n";
-	//std::string defineTX = "#define TRANSLATION " + std::to_string(TRANSLATION) + "\n";
-	//std::string defineTXName = "#define TRANSLATION_NAME " + std::string(TRANSLATION_NAME) + "\n";
-	//std::string defineDiffCol = "#define DIFFUSE_TINT " + std::to_string(DIFFUSE_TINT) + "\n";
-	//std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME) + "\n";
-	//std::string defineDiffuse = "#define DIFFUSE_SLOT " + std::to_string(DIFFUSE_SLOT) + "\n";
+	std::string definePos         = "#define POSITION "          + std::to_string(POSITION)         + "\n";
+	std::string defineNor         = "#define NORMAL "            + std::to_string(NORMAL)           + "\n";
+	std::string defineUV          = "#define TEXTCOORD "         + std::to_string(TEXTCOORD)        + "\n";
+	std::string defineTX          = "#define TRANSLATION "       + std::to_string(TRANSLATION)      + "\n";
+	std::string defineTXName      = "#define TRANSLATION_NAME "  + std::string(TRANSLATION_NAME)    + "\n";
+	std::string defineDiffCol     = "#define DIFFUSE_TINT "      + std::to_string(DIFFUSE_TINT)     + "\n";
+	std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME)   + "\n";
+	std::string defineDiffuse     = "#define DIFFUSE_SLOT "      + std::to_string(DIFFUSE_SLOT)     + "\n";
 
-	//std::vector<std::vector<std::string>> materialDefs = {
-	//	// vertex shader, fragment shader, defines
-	//	// shader filename extension must be asked to the renderer
-	//	// these strings should be constructed from the IA.h file!!!
+	std::vector<std::vector<std::string>> materialDefs = {
+		// vertex shader, fragment shader, defines
+		// shader filename extension must be asked to the renderer
+		// these strings should be constructed from the IA.h file!!!
 
-	//	{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-	//	   defineTXName + defineDiffCol + defineDiffColName }, 
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
+		   defineTXName + defineDiffCol + defineDiffColName }, 
 
-	//	{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-	//	   defineTXName + defineDiffCol + defineDiffColName }, 
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
+		   defineTXName + defineDiffCol + defineDiffColName }, 
 
-	//	{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-	//	   defineTXName + defineDiffCol + defineDiffColName + defineDiffuse	},
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
+		   defineTXName + defineDiffCol + defineDiffColName + defineDiffuse	},
 
-	//	{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-	//	   defineTXName + defineDiffCol + defineDiffColName }, 
-	//};
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
+		   defineTXName + defineDiffCol + defineDiffColName }, 
+	};
 
-	//float degToRad = M_PI / 180.0;
-	//float scale = (float)TOTAL_PLACES / 359.9;
-	//for (int a = 0; a < TOTAL_PLACES; a++)
-	//{
-	//	xt[a] = 0.8f * cosf(degToRad * ((float)a/scale) * 3.0);
-	//	yt[a] = 0.8f * sinf(degToRad * ((float)a/scale) * 2.0);
-	//};
+	float degToRad = M_PI / 180.0;
+	float scale = (float)TOTAL_PLACES / 359.9;
+	for (int a = 0; a < TOTAL_PLACES; a++)
+	{
+		xt[a] = 0.8f * cosf(degToRad * ((float)a/scale) * 3.0);
+		yt[a] = 0.8f * sinf(degToRad * ((float)a/scale) * 2.0);
+	};
 
 	// triangle geometry:
 	float4 triPos[3] = { { 0.0f,  0.05, 0.0f, 1.0f },{ 0.05, -0.05, 0.0f, 1.0f },{ -0.05, -0.05, 0.0f, 1.0f } };
@@ -173,37 +173,37 @@ int initialiseTestbench()
 	float2 triUV[3] =  { { 0.5f,  -0.99f },{ 1.49f, 1.1f },{ -0.51, 1.1f } };
 
 	//// load Materials.
-	//std::string shaderPath = renderer->getShaderPath();
-	//std::string shaderExtension = renderer->getShaderExtension();
-	//float diffuse[4][4] = {
-	//	0.0,0.0,1.0,1.0,
-	//	0.0,1.0,0.0,1.0,
-	//	1.0,1.0,1.0,1.0,
-	//	1.0,0.0,0.0,1.0
-	//};
+	std::string shaderPath = renderer->getShaderPath();
+	std::string shaderExtension = renderer->getShaderExtension();
+	float diffuse[4][4] = {
+		0.0,0.0,1.0,1.0,
+		0.0,1.0,0.0,1.0,
+		1.0,1.0,1.0,1.0,
+		1.0,0.0,0.0,1.0
+	};
 
-	//for (int i = 0; i < materialDefs.size(); i++)
-	//{
-	//	// set material name from text file?
-	//	Material* m = renderer->makeMaterial("material_" + std::to_string(i));
-	//	m->setShader(shaderPath + materialDefs[i][0] + shaderExtension, Material::ShaderType::VS);
-	//	m->setShader(shaderPath + materialDefs[i][1] + shaderExtension, Material::ShaderType::PS);
+	for (int i = 0; i < materialDefs.size(); i++)
+	{
+		// set material name from text file?
+		Material* m = renderer->makeMaterial("material_" + std::to_string(i));
+		m->setShader(shaderPath + materialDefs[i][0] + shaderExtension, Material::ShaderType::VS);
+		m->setShader(shaderPath + materialDefs[i][1] + shaderExtension, Material::ShaderType::PS);
 
-	//	m->addDefine(materialDefs[i][2], Material::ShaderType::VS);
-	//	m->addDefine(materialDefs[i][2], Material::ShaderType::PS);
+		m->addDefine(materialDefs[i][2], Material::ShaderType::VS);
+		m->addDefine(materialDefs[i][2], Material::ShaderType::PS);
 
-	//	std::string err;
-	//	m->compileMaterial(err);
+		std::string err;
+		m->compileMaterial(err);
 
-	//	// add a constant buffer to the material, to tint every triangle using this material
-	//	m->addConstantBuffer(DIFFUSE_TINT_NAME, DIFFUSE_TINT);
-	//	// no need to update anymore
-	//	// when material is bound, this buffer should be also bound for access.
+		// add a constant buffer to the material, to tint every triangle using this material
+		m->addConstantBuffer(DIFFUSE_TINT_NAME, DIFFUSE_TINT);
+		// no need to update anymore
+		// when material is bound, this buffer should be also bound for access.
 
-	//	m->updateConstantBuffer(diffuse[i], 4 * sizeof(float), DIFFUSE_TINT);
-	//	
-	//	materials.push_back(m);
-	//}
+		m->updateConstantBuffer(diffuse[i], 4 * sizeof(float), DIFFUSE_TINT);
+		
+		materials.push_back(m);
+	}
 
 	//// one technique with wireframe
 	//RenderState* renderState1 = renderer->makeRenderState();
@@ -211,7 +211,7 @@ int initialiseTestbench()
 
 	//// basic technique
 	//techniques.push_back(renderer->makeTechnique(materials[0], renderState1));
-	//techniques.push_back(renderer->makeTechnique(materials[1], renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(materials[1], renderer->makeRenderState()));
 	//techniques.push_back(renderer->makeTechnique(materials[2], renderer->makeRenderState()));
 	//techniques.push_back(renderer->makeTechnique(materials[3], renderer->makeRenderState()));
 
@@ -253,7 +253,8 @@ int initialiseTestbench()
 		// we can create a constant buffer outside the material, for example as part of the Mesh.
 		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
 		
-		//m->technique = techniques[ i % 4];
+        m->technique = techniques[0];
+        //m->technique = techniques[ i % 4];
 		//if (i % 4 == 2)
 		//	m->addTexture(textures[0], DIFFUSE_SLOT);
 

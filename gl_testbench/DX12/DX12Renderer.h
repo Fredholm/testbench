@@ -80,6 +80,7 @@ public:
     void frame();
 
 private:
+    std::map<std::string, Material*> materials;
 
     ///////////////////////////////////
     // SDL Window Creation and objects
