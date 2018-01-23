@@ -1898,32 +1898,6 @@ inline bool operator!=(const D3D12_RESOURCE_DESC& l, const D3D12_RESOURCE_DESC& 
     return !(l == r);
 }
 
-//------------------------------------------------------------------------------------------------
-struct CD3DX12_VIEW_INSTANCING_DESC : public D3D12_VIEW_INSTANCING_DESC
-{
-    CD3DX12_VIEW_INSTANCING_DESC()
-    {}
-    explicit CD3DX12_VIEW_INSTANCING_DESC(const D3D12_VIEW_INSTANCING_DESC& o) :
-        D3D12_VIEW_INSTANCING_DESC(o)
-    {}
-    explicit CD3DX12_VIEW_INSTANCING_DESC(CD3DX12_DEFAULT)
-    {
-        ViewInstanceCount = 0;
-        pViewInstanceLocations = nullptr;
-        Flags = D3D12_VIEW_INSTANCING_FLAG_NONE;
-    }
-    explicit CD3DX12_VIEW_INSTANCING_DESC(
-        UINT InViewInstanceCount,
-        const D3D12_VIEW_INSTANCE_LOCATION* InViewInstanceLocations,
-        D3D12_VIEW_INSTANCING_FLAGS InFlags)
-    {
-        ViewInstanceCount = InViewInstanceCount;
-        pViewInstanceLocations = InViewInstanceLocations;
-        Flags = InFlags;
-    }
-    ~CD3DX12_VIEW_INSTANCING_DESC() {}
-    operator const D3D12_VIEW_INSTANCING_DESC&() const { return *this; }
-};
 
 //------------------------------------------------------------------------------------------------
 // Row-by-row memcpy
@@ -2284,8 +2258,6 @@ typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< D3D12_RT_FORMAT_ARRAY, D3D12_PI
 typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< DXGI_SAMPLE_DESC, D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_DESC, DefaultSampleDesc> CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC;
 typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< UINT, D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_MASK, DefaultSampleMask> CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_MASK;
 typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< D3D12_CACHED_PIPELINE_STATE, D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CACHED_PSO>                        CD3DX12_PIPELINE_STATE_STREAM_CACHED_PSO;
-typedef CD3DX12_PIPELINE_STATE_STREAM_SUBOBJECT< CD3DX12_VIEW_INSTANCING_DESC, D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VIEW_INSTANCING, CD3DX12_DEFAULT>  CD3DX12_PIPELINE_STATE_STREAM_VIEW_INSTANCING;
-
 //------------------------------------------------------------------------------------------------
 // Stream Parser Helpers
 
@@ -2313,7 +2285,6 @@ struct ID3DX12PipelineParserCallbacks
     virtual void RTVFormatsCb(const D3D12_RT_FORMAT_ARRAY&) {}
     virtual void SampleDescCb(const DXGI_SAMPLE_DESC&) {}
     virtual void SampleMaskCb(UINT) {}
-    virtual void ViewInstancingCb(const D3D12_VIEW_INSTANCING_DESC&) {}
     virtual void CachedPSOCb(const D3D12_CACHED_PIPELINE_STATE&) {}
 
     // Error Callbacks
@@ -2349,7 +2320,6 @@ struct CD3DX12_PIPELINE_STATE_STREAM1
         , SampleDesc(Desc.SampleDesc)
         , SampleMask(Desc.SampleMask)
         , CachedPSO(Desc.CachedPSO)
-        , ViewInstancingDesc(CD3DX12_VIEW_INSTANCING_DESC(CD3DX12_DEFAULT()))
     {}
     CD3DX12_PIPELINE_STATE_STREAM1(const D3D12_COMPUTE_PIPELINE_STATE_DESC& Desc)
         : Flags(Desc.Flags)
@@ -2379,7 +2349,6 @@ struct CD3DX12_PIPELINE_STATE_STREAM1
     CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC SampleDesc;
     CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_MASK SampleMask;
     CD3DX12_PIPELINE_STATE_STREAM_CACHED_PSO CachedPSO;
-    CD3DX12_PIPELINE_STATE_STREAM_VIEW_INSTANCING ViewInstancingDesc;
     D3D12_GRAPHICS_PIPELINE_STATE_DESC GraphicsDescV0() const
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC D;
@@ -2562,7 +2531,6 @@ struct CD3DX12_PIPELINE_STATE_STREAM_PARSE_HELPER : public ID3DX12PipelineParser
     void RTVFormatsCb(const D3D12_RT_FORMAT_ARRAY& RTVFormats) { PipelineStream.RTVFormats = RTVFormats; }
     void SampleDescCb(const DXGI_SAMPLE_DESC& SampleDesc) { PipelineStream.SampleDesc = SampleDesc; }
     void SampleMaskCb(UINT SampleMask) { PipelineStream.SampleMask = SampleMask; }
-    void ViewInstancingCb(const D3D12_VIEW_INSTANCING_DESC& ViewInstancingDesc) { PipelineStream.ViewInstancingDesc = CD3DX12_VIEW_INSTANCING_DESC(ViewInstancingDesc); }
     void CachedPSOCb(const D3D12_CACHED_PIPELINE_STATE& CachedPSO) { PipelineStream.CachedPSO = CachedPSO; }
     void ErrorBadInputParameter(UINT) {}
     void ErrorDuplicateSubobject(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE) {}
@@ -2702,10 +2670,6 @@ inline HRESULT D3DX12ParsePipelineStream(const D3D12_PIPELINE_STATE_STREAM_DESC&
         case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS:
             pCallbacks->FlagsCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::Flags)*>(pStream));
             SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::Flags);
-            break;
-        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VIEW_INSTANCING:
-            pCallbacks->ViewInstancingCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM1::ViewInstancingDesc)*>(pStream));
-            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM1::ViewInstancingDesc);
             break;
         default:
             pCallbacks->ErrorUnknownSubobject(SubobjectType);

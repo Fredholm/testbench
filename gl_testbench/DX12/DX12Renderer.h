@@ -4,6 +4,11 @@
 // Include of the abstract Renderer class
 #include "../Renderer.h"
 
+#pragma comment(lib,"D3D12.lib")
+#pragma comment(lib,"DXGI.lib")
+#pragma comment(lib,"D3DCompiler.lib")
+
+
 // DirectX12 Includes 
 #include <d3d12.h>
 #include <d3dx12.h> // DX12 helper functions and structs
@@ -11,9 +16,6 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 #include <D3Dcompiler.h>
-#pragma comment(lib,"D3D12.lib")
-#pragma comment(lib,"DXGI.lib")
-#pragma comment(lib,"D3DCompiler.lib")
 
 // Own Includes
 #include "Utility.h"

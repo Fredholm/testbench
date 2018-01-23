@@ -34,7 +34,7 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 {
     // Copy the triangle data to the place of the vertex buffer
     memcpy(m_VertexDataStart + offset, data, size);
-    m_VertexBuffer->Unmap(0, nullptr);
+//    m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;

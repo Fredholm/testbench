@@ -52,10 +52,7 @@ ConstantBuffer_DX12::~ConstantBuffer_DX12()
 
 void ConstantBuffer_DX12::setData(const void * data, size_t size, Material * material, unsigned int location)
 {
-    m_ConstantData.offset.x = 100;
-    m_ConstantData.offset.y = 100;
-    m_ConstantData.offset.z = 100;
-    m_ConstantData.offset.w = 100;
+    m_ConstantData.offset.x = 0.5;
     memcpy(m_pCbvDataBegin, &m_ConstantData, sizeof(m_ConstantData));
 }
 
