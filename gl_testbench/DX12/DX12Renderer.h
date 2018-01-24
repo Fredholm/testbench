@@ -121,11 +121,9 @@ private:
 
     // DirectX Resource Binding
     ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
-    ID3D12DescriptorHeap*       m_cbDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
-    ID3D12DescriptorHeap*       m_srvDescriptorHeap;                        //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_sceneDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
     UINT                        m_RenderTargetViewDescSize;
-    UINT                        m_ConstantBufferViewDescSize;
-    UINT                        m_ShaderResourceViewDescSize;
+    UINT                        m_CBV_SRV_UAV_Heap_Size;
 
     // DirectX Pipeline
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)

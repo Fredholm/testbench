@@ -10,7 +10,7 @@ DX12Renderer::DX12Renderer()
     m_Device                = nullptr;
     m_CommandQueue          = nullptr;
     m_RootSignature         = nullptr;
-    m_cbDescriptorHeap      = nullptr;
+    m_sceneDescriptorHeap   = nullptr;
     m_rtDescriptorHeap      = nullptr;
     m_PipelineState         = nullptr;
     m_GraphicsCommandList   = nullptr;
@@ -33,7 +33,7 @@ Mesh* DX12Renderer::makeMesh()
 
 Texture2D * DX12Renderer::makeTexture2D()
 {
-    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_srvDescriptorHeap);
+    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_sceneDescriptorHeap);
 }
 
 Sampler2D * DX12Renderer::makeSampler2D()
@@ -44,7 +44,7 @@ Sampler2D * DX12Renderer::makeSampler2D()
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap);
+    return new ConstantBuffer_DX12(NAME, location, m_Device, m_sceneDescriptorHeap);
 }
 
 RenderState * DX12Renderer::makeRenderState()
@@ -127,7 +127,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 {
     // Setting start variables
     m_RenderTargetViewDescSize      = 0;
-    m_ConstantBufferViewDescSize    = 0;
+    m_CBV_SRV_UAV_Heap_Size         = 0;
     m_FrameIndex                    = 0;
     m_Viewport                      = CD3DX12_VIEWPORT(0.0f, 0.0f, width, height);
     m_ScissorRect                   = CD3DX12_RECT(0, 0, LONG(width), LONG(height));
@@ -196,6 +196,10 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
         Creation of the Descriptor Heaps
     */
 
+    // Gets the description view sizes of each descriptor heaps
+    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_CBV_SRV_UAV_Heap_Size = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
     // Create the Render Target View (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
     renderTargetViewHeapDesc.NumDescriptors     = Options::FrameCount;
@@ -208,19 +212,14 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     shaderResourceViewHeapDesc.NumDescriptors   = 1;
     shaderResourceViewHeapDesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     shaderResourceViewHeapDesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&shaderResourceViewHeapDesc, IID_PPV_ARGS(&m_srvDescriptorHeap)));
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&shaderResourceViewHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
 
     // Create the Constant Buffer View (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
     constantBufferHeapDesc.NumDescriptors       = 100;
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
-
-    // Gets the description view sizes of each descriptor heaps
-    m_RenderTargetViewDescSize		= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_ShaderResourceViewDescSize    = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    m_ConstantBufferViewDescSize	= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
 
     /*
         Creation of Render Target
@@ -274,7 +273,7 @@ void DX12Renderer::loadAssets()
 
     // Creates Shader Resource Spot
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -467,13 +466,9 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     
     */
 
-    ID3D12DescriptorHeap* ppHeaps[] = { m_srvDescriptorHeap };
-
-//    ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
+    ID3D12DescriptorHeap* ppHeaps[] = { m_sceneDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 	m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
-
-    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
@@ -486,11 +481,6 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
     // Record some commands 
     m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
-
-
-    // TODO
-    /* Clear the non-existant depth buffer */
-    // m_GraphicsCommandList->ClearRenderTargetView(renderTargetViewHandle, m_ClearColor, 0, nullptr);
 }
 
 void DX12Renderer::setRenderState(RenderState* ps)
@@ -517,9 +507,9 @@ void DX12Renderer::frame()
         for (size_t n = 0; n < numberOfVertexBuffers; n++)
             m_GraphicsCommandList->IASetVertexBuffers(n, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBufferView());
 
-        // Setting unique constant buffer
-        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_ConstantBufferViewDescSize);
-   //     m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
+        // Setting the constant buffer
+        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
@@ -589,10 +579,10 @@ int DX12Renderer::shutdown()
         m_rtDescriptorHeap = nullptr;
     }
 
-    if (m_cbDescriptorHeap)
+    if (m_sceneDescriptorHeap)
     {
-        m_cbDescriptorHeap->Release();
-        m_cbDescriptorHeap = nullptr;
+        m_sceneDescriptorHeap->Release();
+        m_sceneDescriptorHeap = nullptr;
     }
 
     if (m_PipelineState)
