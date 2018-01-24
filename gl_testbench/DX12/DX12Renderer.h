@@ -8,7 +8,6 @@
 #pragma comment(lib,"DXGI.lib")
 #pragma comment(lib,"D3DCompiler.lib")
 
-
 // DirectX12 Includes 
 #include <d3d12.h>
 #include <d3dx12.h> // DX12 helper functions and structs
@@ -18,6 +17,7 @@
 #include <D3Dcompiler.h>
 
 // Own Includes
+#include "Device_DX12.h"
 #include "Utility.h"
 #include "VertexBuffer_DX12.h"
 #include "Mesh_DX12.h"
@@ -108,7 +108,6 @@ private:
 
     // DirectX12 Pipeline
     IDXGISwapChain3*            m_SwapChain;                                //< IDXGISwapChain3::GetCurrentBackBufferIndex to choose which Render Target View to render to each frame
-    ID3D12Device*               m_Device;                                   //< Used for a bunch of things, there's no DeviceContext anymore either, Ex Func: CreateCommited/Reserved Resource
     ID3D12Resource*             m_RenderTargets[Options::FrameCount];       //< Contains arrays of data, Enables both the GPU and CPU to read the physical memory   
                                                                             //< \note CreateReservedResource is just virtual, while CreateCommitedResource is both physical and virtual, CreateHeap is still just physical
     // DirectX Command Things 
