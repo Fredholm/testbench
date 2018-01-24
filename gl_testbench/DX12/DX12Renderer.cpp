@@ -477,11 +477,14 @@ void DX12Renderer::frame()
     int counter = 0;
     for (Mesh* mesh : m_DrawList)
     {
-        size_t numberElements = mesh->geometryBuffers[0].numElements;
-        for (size_t i = 0; i < numberElements; i++)
+        // Setting each mesh's vertex buffer
+        size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
+        for (size_t i = 0; i < numberOfVertexBuffers; i++)
             m_GraphicsCommandList->IASetVertexBuffers(i, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[i].buffer)->getVertexBufferView());
 
+        // Setting each mesh's constant buffer
 		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+        
 
         counter++;
 	}
