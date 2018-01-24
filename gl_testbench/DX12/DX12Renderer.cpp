@@ -260,8 +260,25 @@ void DX12Renderer::loadAssets()
     CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
     CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
+    // Constant Buffer Spot
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+
+    // Sampler (For texturing)
+    D3D12_STATIC_SAMPLER_DESC sampler   = {};
+    sampler.Filter                      = D3D12_FILTER_MIN_MAG_MIP_POINT;               // What Filtering Method should be used, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770367)
+    sampler.AddressU                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of U 
+    sampler.AddressV                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of V
+    sampler.AddressW                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of W
+    sampler.MipLODBias                  = 0;                                            // Offset from the calculated mipmap level, Ex: Direct3D calculates mipmaplevel 5, MipLodBias is 2, this results in a mipmap level of 7
+    sampler.MaxAnisotropy               = 0;                                            // Clamping value if filters ANISOTROPIC or COMPARISON_ANISOTROPIC was used (Valid between 1:16)
+    sampler.ComparisonFunc              = D3D12_COMPARISON_FUNC_NEVER;                  // Function which compares sampled data against existing sampling data, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770349)
+    sampler.BorderColor                 = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;  // If ADDRESS_MODE_BORDER was used somewhere, List(https://msdn.microsoft.com/en-us/library/windows/desktop/dn903815)
+    sampler.MinLOD                      = 0.0f;                                         // Minimun clamping of mipmap (min: 0.f)        
+    sampler.MaxLOD                      = D3D12_FLOAT32_MAX;                            // Maximum clamping of mipmap (max: D3D12_FLOAT32_MAX)
+    sampler.ShaderRegister              = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> ShaderRegister of 2 
+    sampler.RegisterSpace               = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> RegisterSpace of 3 
+    sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_PIXEL;                // Which Shaders should be able to see this sampler
 
     // Allow input layout and deny uneccessary access to certain pipeline stages.
     D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
@@ -272,7 +289,7 @@ void DX12Renderer::loadAssets()
         D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, &sampler, rootSignatureFlags);
 
     ID3DBlob* signature;
     ID3DBlob* error;
