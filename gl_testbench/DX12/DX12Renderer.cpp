@@ -33,8 +33,7 @@ Mesh* DX12Renderer::makeMesh()
 
 Texture2D * DX12Renderer::makeTexture2D()
 {
-    //	return (Texture2D*)new Texture2D_DX12();
-    return nullptr;
+    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_srvDescriptorHeap);
 }
 
 Sampler2D * DX12Renderer::makeSampler2D()
@@ -69,7 +68,7 @@ std::string DX12Renderer::getShaderExtension()
 
 VertexBuffer * DX12Renderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_USAGE usage)
 {
-    return new VertexBuffer_DX12(size, usage, m_Device);
+    return new VertexBuffer_DX12(size, usage);
 }
 
 Material * DX12Renderer::makeMaterial(const std::string & name)
@@ -194,24 +193,33 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     /*
-        Creation of the Descriptor Heap
+        Creation of the Descriptor Heaps
     */
 
-    // Render Targets
+    // Create the Render Target View (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
     renderTargetViewHeapDesc.NumDescriptors = Options::FrameCount;
     renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
 
-    // Describe and create a constant buffer view (CBV) descriptor heap.
-    D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
-    constantBufferHeapdesc.NumDescriptors   = 100;
-    constantBufferHeapdesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    constantBufferHeapdesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
+    // Create the Shader Resource View (SRV) descriptor heap.
+    D3D12_DESCRIPTOR_HEAP_DESC shaderResourceViewHeapDesc = {};
+    shaderResourceViewHeapDesc.NumDescriptors   = 1;
+    shaderResourceViewHeapDesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    shaderResourceViewHeapDesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&shaderResourceViewHeapDesc, IID_PPV_ARGS(&m_srvDescriptorHeap)));
 
+    // Create the Constant Buffer View (CBV) descriptor heap.
+    D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
+    constantBufferHeapDesc.NumDescriptors   = 100;
+    constantBufferHeapDesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    constantBufferHeapDesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
+    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
+
+    // Gets the description view sizes of each descriptor heaps
     m_RenderTargetViewDescSize		= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_ShaderResourceViewDescSize    = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     m_ConstantBufferViewDescSize	= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     /*
@@ -453,6 +461,16 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
     ThrowIfFailed(m_CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_PipelineState));
+
+
+    /*
+    
+        TODO!
+
+        Add the SRV to the command List!
+    
+    */
+
 
     ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);

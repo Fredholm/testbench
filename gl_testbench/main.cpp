@@ -219,13 +219,13 @@ int initialiseTestbench()
 	//techniques.push_back(renderer->makeTechnique(materials[3], renderer->makeRenderState()));
 
 	//// create texture
-	//Texture2D* fatboy = renderer->makeTexture2D();
+//	Texture2D* fatboy = renderer->makeTexture2D();
 	//fatboy->loadFromFile("../assets/textures/fatboy.png");
 	//Sampler2D* sampler = renderer->makeSampler2D();
 	//sampler->setWrap(WRAPPING::REPEAT, WRAPPING::REPEAT);
 	//fatboy->sampler = sampler;
 
-	//textures.push_back(fatboy);
+//	textures.push_back(fatboy);
 	//samplers.push_back(sampler);
 
 	// pre-allocate one single vertex buffer for ALL triangles
@@ -258,7 +258,7 @@ int initialiseTestbench()
 		
 		//m->technique = techniques[ i % 4];
 		//if (i % 4 == 2)
-		//	m->addTexture(textures[0], DIFFUSE_SLOT);
+//		m->addTexture(textures[0], DIFFUSE_SLOT);
 
 		scene.push_back(m);
 	}

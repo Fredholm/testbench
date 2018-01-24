@@ -1,6 +1,6 @@
 #include "ConstantBuffer_DX12.h"
 
-ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* descHeap)
+ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* cbvDescHeap)
 {
     m_ConstantBuffer                = nullptr;
     m_pCbvDataBegin                 = nullptr;
@@ -20,7 +20,7 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
     ThrowIfFailed(m_ConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin)));
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE   cpuHandle(descHeap->GetCPUDescriptorHandleForHeapStart());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE   cpuHandle(cbvDescHeap->GetCPUDescriptorHandleForHeapStart());
     D3D12_GPU_VIRTUAL_ADDRESS       gpuAddress = m_ConstantBuffer->GetGPUVirtualAddress();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};

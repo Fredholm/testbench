@@ -15,7 +15,7 @@ struct SceneConstantBuffer
 class ConstantBuffer_DX12 : public ConstantBuffer
 {
 public:
-    ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* descHeap);
+    ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* cbvDescHeap);
     ~ConstantBuffer_DX12();
     void setData(const void* data, size_t size, Material* material, unsigned int location);
     void bind(Material* material);

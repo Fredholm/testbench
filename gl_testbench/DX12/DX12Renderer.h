@@ -22,6 +22,7 @@
 #include "VertexBuffer_DX12.h"
 #include "Mesh_DX12.h"
 #include "Material_DX12.h"
+#include "Texture_DX12.h"
 #include "ConstantBuffer_DX12.h"
 
 // Common Pointer Object, used once, fuck'em
@@ -99,7 +100,7 @@ private:
     void waitForTheGPU();
     void moveToNextFrame();
 
-    // Graphical Vars
+    // Simple Stuff
     std::vector<Mesh*>          m_DrawList;
     float                       m_AspectRatio;
     CD3DX12_VIEWPORT            m_Viewport;
@@ -118,12 +119,17 @@ private:
     ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
     ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
 
-    // DirectX Other Things
-    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
-    ID3D12DescriptorHeap*       m_cbDescriptorHeap;
-    ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
+    // DirectX Resource Binding
+    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_cbDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_srvDescriptorHeap;                        //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
     UINT                        m_RenderTargetViewDescSize;
     UINT                        m_ConstantBufferViewDescSize;
+    UINT                        m_ShaderResourceViewDescSize;
+
+    // DirectX Pipeline
+    ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
+   
 
     // DirectX Fence Sync
     ID3D12Fence*                m_Fence;                                    //< Used to jump between and sync GPU and CPU
