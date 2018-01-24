@@ -474,24 +474,24 @@ void DX12Renderer::frame()
     m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Adding meshes to to drawing
-    int count = 0;
-    for (Mesh* mesh : m_DrawList)
+    for (size_t i = 0; i < m_DrawList.size(); i++)
     {
-        // Setting each mesh's vertex buffer
-        size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
-        for (size_t i = 0; i < numberOfVertexBuffers; i++)
-            m_GraphicsCommandList->IASetVertexBuffers(i, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[i].buffer)->getVertexBufferView());
+        Mesh* mesh = m_DrawList[i];
 
-        // Setting each mesh's constant buffer
-        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), count, m_ConstantBufferViewDescSize);
+        // Setting all vertex buffers
+        size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
+        for (size_t n = 0; n < numberOfVertexBuffers; n++)
+            m_GraphicsCommandList->IASetVertexBuffers(n, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBufferView());
+
+        // Setting unique constant buffer
+        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_ConstantBufferViewDescSize);
         m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
 
+        // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
-        count++;
 	}
 
     // Draw all the meshes
- //   m_GraphicsCommandList->DrawInstanced(3, m_DrawList.size(), 0, 0);
     m_DrawList.clear();
 
     // Indicate that the back buffer will be present
