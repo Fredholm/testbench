@@ -20,10 +20,7 @@ public:
     void setData(const void* data, size_t size, Material* material, unsigned int location);
     void bind(Material* material);
 
-	ID3D12DescriptorHeap* getDescriptorHeap() { return m_pDescriptorHeap;  }
-
 private:
-	ID3D12DescriptorHeap* m_pDescriptorHeap;
     ID3D12Resource* m_ConstantBuffer;
     SceneConstantBuffer m_ConstantData;
     UINT8* m_pCbvDataBegin;

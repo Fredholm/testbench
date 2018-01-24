@@ -4,7 +4,6 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
 {
     m_ConstantBuffer                = nullptr;
     m_pCbvDataBegin                 = nullptr;
-	m_pDescriptorHeap				= descHeap;
 
     ZeroMemory(&m_pCbvDataBegin, sizeof(m_ConstantData));
     m_ConstantData.offset = DirectX::XMFLOAT4(50.f, 2.f, 1.f, 0.f);

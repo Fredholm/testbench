@@ -474,13 +474,16 @@ void DX12Renderer::frame()
     m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Adding meshes to to drawing
+    int counter = 0;
     for (Mesh* mesh : m_DrawList)
     {
         size_t numberElements = mesh->geometryBuffers[0].numElements;
         for (size_t i = 0; i < numberElements; i++)
             m_GraphicsCommandList->IASetVertexBuffers(i, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[i].buffer)->getVertexBufferView());
 
-		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, static_cast<ConstantBuffer_DX12*>(mesh->txBuffer)->getDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+        counter++;
 	}
 
     // Draw all the meshes
