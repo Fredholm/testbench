@@ -100,14 +100,12 @@ void updateScene()
 		const int size = scene.size();
 		for (int i = 0; i < size; i++)
 		{
-			const float4 trans{
-				xt[(int)(float)(i + shift) % (TOTAL_PLACES)],
-				yt[(int)(float)(i + shift) % (TOTAL_PLACES)],
-				((double)rand() / RAND_MAX * 0.5f),
-				0.0
-			};
-
-			printf("%f\n", trans.z);
+            const float4 trans{
+                xt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+                yt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+                i * (-1.0 / TOTAL_PLACES),
+                0.0
+            };
 
 			scene[i]->txBuffer->setData(&trans, sizeof(trans), nullptr, TRANSLATION);
 			// scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
@@ -164,13 +162,13 @@ int initialiseTestbench()
 	//	   defineTXName + defineDiffCol + defineDiffColName }, 
 	//};
 
-	//float degToRad = M_PI / 180.0;
-	//float scale = (float)TOTAL_PLACES / 359.9;
-	//for (int a = 0; a < TOTAL_PLACES; a++)
-	//{
-	//	xt[a] = 0.8f * cosf(degToRad * ((float)a/scale) * 3.0);
-	//	yt[a] = 0.8f * sinf(degToRad * ((float)a/scale) * 2.0);
-	//};
+	float degToRad = M_PI / 180.0;
+	float scale = (float)TOTAL_PLACES / 359.9;
+	for (int a = 0; a < TOTAL_PLACES; a++)
+	{
+		xt[a] = 0.8f * cosf(degToRad * ((float)a/scale) * 3.0);
+		yt[a] = 0.8f * sinf(degToRad * ((float)a/scale) * 2.0);
+	};
 
 	// triangle geometry:
 	float4 triPos[3] = { { 0.0f,  0.05, 0.0f, 1.0f },{ 0.05, -0.05, 0.0f, 1.0f },{ -0.05, -0.05, 0.0f, 1.0f } };

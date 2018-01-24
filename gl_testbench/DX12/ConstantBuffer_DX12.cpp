@@ -30,6 +30,8 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     cbvDesc.SizeInBytes = (sizeof(SceneConstantBuffer) + 255) & ~255;
     cbvDesc.BufferLocation = gpuAddress;
 
+    printf("Creating Constant Buffer at: %p", gpuAddress);
+
     // for (UINT n = 0; i < amountOfFrames; i++) {
     device->CreateConstantBufferView(&cbvDesc, cpuHandle);
 
@@ -53,15 +55,13 @@ ConstantBuffer_DX12::~ConstantBuffer_DX12()
 
 void ConstantBuffer_DX12::setData(const void * data, size_t size, Material * material, unsigned int location)
 {
-
 	DirectX::XMFLOAT4 dataGet;
 	memcpy(&dataGet, data, size);
-	m_ConstantData.offset.y = dataGet.z;
+    m_ConstantData.offset.x = dataGet.x;
+	m_ConstantData.offset.y = dataGet.y;
+    m_ConstantData.offset.z = -dataGet.z;
 
     memcpy(m_pCbvDataBegin, &m_ConstantData, sizeof(m_ConstantData));
-
-//	memcpy(m_pCbvDataBegin, data, size);
-//	printf("Constant: x:%f, y:%f, z:%f, w:%f\n", m_ConstantData.offset.x, m_ConstantData.offset.y, m_ConstantData.offset.z, m_ConstantData.offset.w);
 }
 
 void ConstantBuffer_DX12::bind(Material* material)
