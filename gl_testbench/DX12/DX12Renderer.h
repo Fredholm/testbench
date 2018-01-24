@@ -43,7 +43,7 @@ private:
         static const D3D12_PRIMITIVE_TOPOLOGY_TYPE Topology     = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         static const D3D_FEATURE_LEVEL FeatureLevel             = D3D_FEATURE_LEVEL_11_0;
         static const DXGI_FORMAT Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;   //< 32bits -> 8 bits per channel including alpha
-        static const UINT AmountOfFrames                        = 2;
+        static const UINT FrameCount                            = 2;
     };
 
 public:
@@ -109,18 +109,18 @@ private:
     // DirectX12 Pipeline
     IDXGISwapChain3*            m_SwapChain;                                //< IDXGISwapChain3::GetCurrentBackBufferIndex to choose which Render Target View to render to each frame
     ID3D12Device*               m_Device;                                   //< Used for a bunch of things, there's no DeviceContext anymore either, Ex Func: CreateCommited/Reserved Resource
-    ID3D12Resource*             m_RenderTargets[Options::AmountOfFrames];   //< Contains arrays of data, Enables both the GPU and CPU to read the physical memory   
+    ID3D12Resource*             m_RenderTargets[Options::FrameCount];       //< Contains arrays of data, Enables both the GPU and CPU to read the physical memory   
                                                                             //< \note CreateReservedResource is just virtual, while CreateCommitedResource is both physical and virtual, CreateHeap is still just physical
     // DirectX Command Things 
     // (Work submission was automaticly in DirectX11, 
     //  so this is all new stuff)
-    ID3D12CommandAllocator*     m_CommandAllocator[Options::AmountOfFrames];//< Used to back memory for the commands
+    ID3D12CommandAllocator*     m_CommandAllocator;                         //< Used to back memory for the commands
     ID3D12CommandQueue*         m_CommandQueue;                             //< FIFO scheduler
     ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
     ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
 
     // DirectX Other Things
-    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                           //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used for Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
     ID3D12DescriptorHeap*       m_cbDescriptorHeap;
     ID3D12PipelineState*        m_PipelineState;                            //< Used to identify and use different stuff (VS, PS, HS, DS, GS, CS, OM, RS, IA)
     UINT                        m_RenderTargetViewDescSize;
@@ -130,7 +130,7 @@ private:
     ID3D12Fence*                m_Fence;                                    //< Used to jump between and sync GPU and CPU
     UINT                        m_FrameIndex;                               //< Current Fence Index
     HANDLE                      m_FenceEvent;                               //< Current Fence Event
-    UINT64                      m_FenceValue[Options::AmountOfFrames];      //< Current Fence Value
+    UINT64                      m_FenceValue;                               //< Current Fence Value
 };
 
 #endif // !DX12RENDERER_H

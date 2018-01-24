@@ -5,8 +5,6 @@
 
 DX12Renderer::DX12Renderer()
 {
-    ZeroMemory(m_FenceValue, sizeof(m_FenceValue));
-
     m_SDLWindow             = nullptr;
     m_SwapChain             = nullptr;
     m_Device                = nullptr;
@@ -17,11 +15,12 @@ DX12Renderer::DX12Renderer()
     m_PipelineState         = nullptr;
     m_GraphicsCommandList   = nullptr;
     m_Fence                 = nullptr;
+    m_CommandAllocator      = nullptr;
+    m_FenceValue            = NULL;
 
-    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+    for (UINT i = 0; i < Options::FrameCount; i++)
     {
-        m_RenderTargets[i]      = nullptr;
-        m_CommandAllocator[i]   = nullptr;
+        m_RenderTargets[i] = nullptr;
     }
 }
 
@@ -46,7 +45,7 @@ Sampler2D * DX12Renderer::makeSampler2D()
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap, Options::AmountOfFrames, m_ConstantBufferViewDescSize);
+    return new ConstantBuffer_DX12(NAME, location, m_Device, m_cbDescriptorHeap);
 }
 
 RenderState * DX12Renderer::makeRenderState()
@@ -177,7 +176,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     */
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-    swapChainDesc.BufferCount           = Options::AmountOfFrames;
+    swapChainDesc.BufferCount           = Options::FrameCount;
     swapChainDesc.Width                 = width;
     swapChainDesc.Height                = height;
     swapChainDesc.Format                = Options::Format;
@@ -200,14 +199,14 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 
     // Render Targets
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
-    renderTargetViewHeapDesc.NumDescriptors = Options::AmountOfFrames;
+    renderTargetViewHeapDesc.NumDescriptors = Options::FrameCount;
     renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
 
     // Describe and create a constant buffer view (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
-    constantBufferHeapdesc.NumDescriptors   = Options::AmountOfFrames;
+    constantBufferHeapdesc.NumDescriptors   = 1;
     constantBufferHeapdesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapdesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
@@ -216,20 +215,23 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     m_ConstantBufferViewDescSize	= m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     /*
-        Creation of Command Allocater resources
+        Creation of Render Target
     */
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle(m_rtDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
-    // Create a Render Target View and a Command Allocator for each frame
-    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+    for (UINT i = 0; i < Options::FrameCount; i++)
     {
         ThrowIfFailed(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_RenderTargets[i])));
         m_Device->CreateRenderTargetView(m_RenderTargets[i], nullptr, renderTargetViewHandle);
         renderTargetViewHandle.Offset(1, m_RenderTargetViewDescSize);
-
-        ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator[i])));
     }
+
+    /*
+        Creation of Command Allocater resources
+    */
+
+    ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
+
 
     // These things won't be used again
     hardwareAdapter->Release();
@@ -325,15 +327,15 @@ void DX12Renderer::loadAssets()
         Creation of Command List
     */
 
-    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator[m_FrameIndex], m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
+    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
     ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
 
     /*
         Creation of Objects used for Syncing GPU and CPU
     */
     
-    ThrowIfFailed(m_Device->CreateFence(m_FenceValue[m_FrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
-    m_FenceValue[m_FrameIndex] = 1;
+    ThrowIfFailed(m_Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+    m_FenceValue = 1;
 
     m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (m_FenceEvent == nullptr)
@@ -372,14 +374,14 @@ void DX12Renderer::getHardwareAdapter(IDXGIFactory2* factory, IDXGIAdapter1** ad
 void DX12Renderer::waitForTheGPU()
 {
     // Send a signal to the command queue
-    ThrowIfFailed(m_CommandQueue->Signal(m_Fence, m_FenceValue[m_FrameIndex]));
+    ThrowIfFailed(m_CommandQueue->Signal(m_Fence, m_FenceValue));
 
     // Wait until the fence (GPU is done) has been processed
-    ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue[m_FrameIndex], m_FenceEvent));
+    ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue, m_FenceEvent));
     WaitForSingleObjectEx(m_FenceEvent, INFINITE, FALSE);
 
     // Increase the fence value for the current frame
-    m_FenceValue[m_FrameIndex]++;
+    m_FenceValue++;
 }
 
 void DX12Renderer::present()
@@ -393,28 +395,27 @@ void DX12Renderer::present()
 
     moveToNextFrame();
 
-	// TEMP! to avoid removal of Meshes in main.cpp crash
 	waitForTheGPU();
 }
 
 void DX12Renderer::moveToNextFrame()
 {
     // Issue a signal command into the command queue
-    const UINT64 currentFenceValue = m_FenceValue[m_FrameIndex];
+    const UINT64 currentFenceValue = m_FenceValue;
     ThrowIfFailed(m_CommandQueue->Signal(m_Fence, currentFenceValue));
 
     // Change the frame index
     m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
     // If the next frame is not ready to be rendered, wait
-    if (m_Fence->GetCompletedValue() < m_FenceValue[m_FrameIndex])
+    if (m_Fence->GetCompletedValue() < m_FenceValue)
     {
-        ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue[m_FrameIndex], m_FenceEvent));
+        ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue, m_FenceEvent));
         WaitForSingleObjectEx(m_FenceEvent, INFINITE, FALSE);
     }
 
     // Set the fence value for the next frame
-    m_FenceValue[m_FrameIndex] = currentFenceValue + 1;
+    m_FenceValue = currentFenceValue + 1;
 }
 
 void DX12Renderer::setWinTitle(const char * title)
@@ -433,8 +434,8 @@ void DX12Renderer::setClearColor(float r, float g, float b, float a)
 void DX12Renderer::clearBuffer(unsigned int flag)
 {
     // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
-    ThrowIfFailed(m_CommandAllocator[m_FrameIndex]->Reset());
-    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator[m_FrameIndex], m_PipelineState));
+    ThrowIfFailed(m_CommandAllocator->Reset());
+    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_PipelineState));
 
     ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
@@ -512,21 +513,21 @@ int DX12Renderer::shutdown()
         m_Device->Release();
         m_Device = nullptr;
     }
-
-    for (UINT i = 0; i < Options::AmountOfFrames; i++)
+   
+    for (UINT i = 0; i < Options::FrameCount; i++)
     {
         if (m_RenderTargets[i])
         {
-			// Fix please
+            // Fix please
             // m_RenderTargets[i]->Release();
             m_RenderTargets[i] = nullptr;
         }
+    }
 
-        if (m_CommandAllocator[i])
-        {
-            m_CommandAllocator[i]->Release();
-            m_CommandAllocator[i] = nullptr;
-        }
+    if (m_CommandAllocator)
+    {
+        m_CommandAllocator->Release();
+        m_CommandAllocator = nullptr;
     }
 
     if (m_CommandQueue)

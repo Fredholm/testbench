@@ -1,6 +1,6 @@
 #include "ConstantBuffer_DX12.h"
 
-ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* descHeap, UINT amountOfFrames, UINT sizeOfConstantBufferView)
+ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location, ID3D12Device* device, ID3D12DescriptorHeap* descHeap)
 {
     m_ConstantBuffer                = nullptr;
     m_pCbvDataBegin                 = nullptr;
@@ -31,16 +31,6 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     cbvDesc.BufferLocation = gpuAddress;
 
     printf("Creating Constant Buffer at: %p", gpuAddress);
-
-    // for (UINT n = 0; i < amountOfFrames; i++) {
-    device->CreateConstantBufferView(&cbvDesc, cpuHandle);
-
-    // Moving to next position
-    cpuHandle.Offset(sizeOfConstantBufferView);
-    gpuAddress += cbvDesc.SizeInBytes;
-    cbvDesc.BufferLocation = gpuAddress;
-    // }
-
     device->CreateConstantBufferView(&cbvDesc, cpuHandle);
 }
 
