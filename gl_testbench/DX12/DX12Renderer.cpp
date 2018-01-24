@@ -198,9 +198,9 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 
     // Create the Render Target View (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
-    renderTargetViewHeapDesc.NumDescriptors = Options::FrameCount;
-    renderTargetViewHeapDesc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    renderTargetViewHeapDesc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    renderTargetViewHeapDesc.NumDescriptors     = Options::FrameCount;
+    renderTargetViewHeapDesc.Type               = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    renderTargetViewHeapDesc.Flags              = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
 
     // Create the Shader Resource View (SRV) descriptor heap.
@@ -212,9 +212,9 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 
     // Create the Constant Buffer View (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors   = 100;
-    constantBufferHeapDesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    constantBufferHeapDesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
+    constantBufferHeapDesc.NumDescriptors       = 100;
+    constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
 
     // Gets the description view sizes of each descriptor heaps
@@ -265,12 +265,16 @@ void DX12Renderer::loadAssets()
     if (FAILED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
-    CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+    CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
+    CD3DX12_ROOT_PARAMETER1 rootParameters[2];
 
     // Constant Buffer Spot
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+
+    // Creates Shader Resource Spot
+    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_PIXEL);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -288,16 +292,8 @@ void DX12Renderer::loadAssets()
     sampler.RegisterSpace               = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> RegisterSpace of 3 
     sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_PIXEL;                // Which Shaders should be able to see this sampler
 
-    // Allow input layout and deny uneccessary access to certain pipeline stages.
-    D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, &sampler, rootSignatureFlags);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ID3DBlob* signature;
     ID3DBlob* error;
@@ -471,10 +467,13 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     
     */
 
+    ID3D12DescriptorHeap* ppHeaps[] = { m_srvDescriptorHeap };
 
-    ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
+//    ID3D12DescriptorHeap* ppHeaps[] = { m_cbDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 	m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
+
+    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
@@ -520,7 +519,7 @@ void DX12Renderer::frame()
 
         // Setting unique constant buffer
         CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_ConstantBufferViewDescSize);
-        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
+   //     m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);

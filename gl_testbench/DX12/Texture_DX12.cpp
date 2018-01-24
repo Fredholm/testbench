@@ -1,9 +1,5 @@
 #include "Texture_DX12.h"
 
-#define TEXTURE_WIDTH   256
-#define TEXTURE_HEIGHT  256
-#define TEXTURE_PIXEL   4   // Bytes used to represent a pixel in the texture
-
 Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap)
 {
     m_Texture               = nullptr;
@@ -12,8 +8,8 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
     D3D12_RESOURCE_DESC textureDesc = {};
     textureDesc.MipLevels           = 1;
     textureDesc.Format              = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.Width               = TEXTURE_WIDTH;
-    textureDesc.Height              = TEXTURE_HEIGHT;
+    textureDesc.Width               = TextureWidth;
+    textureDesc.Height              = TextureHeight;
     textureDesc.Flags               = D3D12_RESOURCE_FLAG_NONE;
     textureDesc.DepthOrArraySize    = 1;
     textureDesc.SampleDesc.Count    = 1;
@@ -44,8 +40,8 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
 
     D3D12_SUBRESOURCE_DATA textureData = {};
     textureData.pData = &texture[0];
-    textureData.RowPitch = TEXTURE_WIDTH * TEXTURE_HEIGHT;
-    textureData.SlicePitch = textureData.RowPitch * TEXTURE_HEIGHT;
+    textureData.RowPitch = TextureWidth * TexturePixelSize;
+    textureData.SlicePitch = textureData.RowPitch * TextureHeight;
 
     UpdateSubresources(graphicsCommandList, m_Texture, m_TextureUploadHeap, 0, 0, 1, &textureData);
     graphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
@@ -66,6 +62,12 @@ Texture_DX12::~Texture_DX12()
         m_Texture->Release();
         m_Texture = nullptr;
     }
+
+    if (m_TextureUploadHeap)
+    {
+        m_TextureUploadHeap->Release();
+        m_TextureUploadHeap = nullptr;
+    }
 }
 
 int Texture_DX12::loadFromFile(std::string filename)
@@ -80,15 +82,15 @@ void Texture_DX12::bind(unsigned int slot)
 // Creates a checkboard of white & black (Taken from Microsoft Sample!)
 std::vector<UINT8> Texture_DX12::GenerateTextureData()
 {
-    const UINT rowPitch = TEXTURE_WIDTH * TEXTURE_PIXEL;
+    const UINT rowPitch = TextureWidth * TexturePixelSize;
     const UINT cellPitch = rowPitch >> 3;		// The width of a cell in the checkboard texture.
-    const UINT cellHeight = TEXTURE_WIDTH >> 3;	// The height of a cell in the checkerboard texture.
-    const UINT textureSize = rowPitch * TEXTURE_HEIGHT;
+    const UINT cellHeight = TextureWidth >> 3;	// The height of a cell in the checkerboard texture.
+    const UINT textureSize = rowPitch * TextureHeight;
 
     std::vector<UINT8> data(textureSize);
     UINT8* pData = &data[0];
 
-    for (UINT n = 0; n < textureSize; n += TEXTURE_PIXEL)
+    for (UINT n = 0; n < textureSize; n += TexturePixelSize)
     {
         UINT x = n % rowPitch;
         UINT y = n / rowPitch;

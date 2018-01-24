@@ -11,6 +11,11 @@
 class Texture_DX12 : public Texture2D
 {
 public:
+
+    static const UINT TextureWidth      = 256;
+    static const UINT TextureHeight     = 256;
+    static const UINT TexturePixelSize  = 4;	
+
     Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap);
     virtual ~Texture_DX12();
 
