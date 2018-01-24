@@ -32,7 +32,7 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     cpuHandle.Offset(counter, cbvSrvDescriptorSize);
     counter++;
 
-    printf("Creating Constant Buffer at GPU: %p & CPU: %p\n", gpuAddress, cpuHandle.ptr);
+    printf("Creating Constant Buffer Nr: %d at GPU: %p & CPU: %p\n", counter, gpuAddress, cpuHandle.ptr);
     device->CreateConstantBufferView(&cbvDesc, cpuHandle);
 }
 
