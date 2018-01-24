@@ -4,14 +4,12 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
 {
     m_ConstantBuffer                = nullptr;
     m_pCbvDataBegin                 = nullptr;
-
-    ZeroMemory(&m_pCbvDataBegin, sizeof(m_ConstantData));
-    m_ConstantData.offset = DirectX::XMFLOAT4(50.f, 2.f, 1.f, 0.f);
+    m_ConstantData.offset           = DirectX::XMFLOAT4(0, 0, 0, 0);
 
     ThrowIfFailed(device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(1024 * 2),
+        &CD3DX12_RESOURCE_DESC::Buffer(1024),
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&m_ConstantBuffer)));
@@ -29,7 +27,12 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     cbvDesc.SizeInBytes = (sizeof(SceneConstantBuffer) + 255) & ~255;
     cbvDesc.BufferLocation = gpuAddress;
 
-    printf("Creating Constant Buffer at: %p", gpuAddress);
+    const UINT cbvSrvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    static int counter = 0;
+    cpuHandle.Offset(counter, cbvSrvDescriptorSize);
+    counter++;
+
+    printf("Creating Constant Buffer at GPU: %p & CPU: %p\n", gpuAddress, cpuHandle.ptr);
     device->CreateConstantBufferView(&cbvDesc, cpuHandle);
 }
 

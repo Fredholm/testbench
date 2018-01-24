@@ -39,8 +39,6 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 	// Remember! when bind() is getting called later on, reenable this!
 	//   m_VertexBuffer->Unmap(0, nullptr);
 
-	printf("Size: %d, Offset: %d, Stride: %d\n", size, offset, size / 3);
-
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;
     m_VertexBufferView.StrideInBytes = (size / 3);

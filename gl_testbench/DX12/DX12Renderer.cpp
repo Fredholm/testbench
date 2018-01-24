@@ -206,7 +206,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
 
     // Describe and create a constant buffer view (CBV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapdesc  = {};
-    constantBufferHeapdesc.NumDescriptors   = 1;
+    constantBufferHeapdesc.NumDescriptors   = 100;
     constantBufferHeapdesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapdesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  // Can be bound to the pipeline 
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapdesc, IID_PPV_ARGS(&m_cbDescriptorHeap)));
@@ -474,7 +474,7 @@ void DX12Renderer::frame()
     m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Adding meshes to to drawing
-    int counter = 0;
+    int count = 0;
     for (Mesh* mesh : m_DrawList)
     {
         // Setting each mesh's vertex buffer
@@ -483,14 +483,15 @@ void DX12Renderer::frame()
             m_GraphicsCommandList->IASetVertexBuffers(i, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[i].buffer)->getVertexBufferView());
 
         // Setting each mesh's constant buffer
-		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-        
+        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_cbDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), count, m_ConstantBufferViewDescSize);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
 
-        counter++;
+        m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
+        count++;
 	}
 
     // Draw all the meshes
-    m_GraphicsCommandList->DrawInstanced(3, m_DrawList.size(), 0, 0);
+ //   m_GraphicsCommandList->DrawInstanced(3, m_DrawList.size(), 0, 0);
     m_DrawList.clear();
 
     // Indicate that the back buffer will be present
