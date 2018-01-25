@@ -312,9 +312,9 @@ void DX12Renderer::loadAssets()
 
     D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }, // 16
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },  // 32
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }       // 40
     };
 
     /*
@@ -450,15 +450,6 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
     ThrowIfFailed(m_CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_PipelineState));
-
-
-    /*
-    
-        TODO!
-
-        Add the SRV to the command List!
-    
-    */
 
     ID3D12DescriptorHeap* ppHeaps[] = { m_sceneDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);

@@ -33,6 +33,5 @@ PSInput VSMain(VS_INPUT input)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return float4(input.tex.x, input.tex.y, 1, 1);
     return g_texture.Sample(g_sampler, input.tex);
 }

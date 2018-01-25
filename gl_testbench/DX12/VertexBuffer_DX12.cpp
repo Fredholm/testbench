@@ -10,7 +10,7 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     ThrowIfFailed(m_Device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(m_Size * 2),
+        &CD3DX12_RESOURCE_DESC::Buffer(4000),
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&m_VertexBuffer)
@@ -37,12 +37,12 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
     memcpy(m_VertexDataStart + offset, data, size);
 
 	// Remember! when bind() is getting called later on, reenable this!
-	//   m_VertexBuffer->Unmap(0, nullptr);
+	m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;
-    m_VertexBufferView.StrideInBytes = (size / 3);
-    m_VertexBufferView.SizeInBytes = m_Size;
+    m_VertexBufferView.StrideInBytes = size / 3; // (float4 comes in at 48 bytes, it works when it's 16 bytes here, same with float2, which comes in at 16 which is only 8 bytes) i don't know..
+    m_VertexBufferView.SizeInBytes = size;;
 }
 
 void VertexBuffer_DX12::bind(size_t offset, size_t size, unsigned int location)
