@@ -79,6 +79,7 @@ int Texture_DX12::loadFromFile(std::string filename)
 
 void Texture_DX12::bind(unsigned int slot)
 {
+
 }
 
 // Creates a checkboard of white & black (Taken from Microsoft Sample!)
