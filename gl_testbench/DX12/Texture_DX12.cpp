@@ -52,6 +52,8 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
     srvDesc.Format = textureDesc.Format;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
+
+    printf("Creating Shader Resource Nr: 1 at GPU: %p & CPU: %p\n", m_Texture->GetGPUVirtualAddress(), srvDescHeap->GetCPUDescriptorHandleForHeapStart().ptr);
     m_Device->CreateShaderResourceView(m_Texture, &srvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
@@ -99,10 +101,10 @@ std::vector<UINT8> Texture_DX12::GenerateTextureData()
 
         if (i % 2 == j % 2)
         {
-            // Black
-            pData[n] = 0x00;		// R
-            pData[n + 1] = 0x00;	// G
-            pData[n + 2] = 0x00;	// B
+            // White
+            pData[n] = 0xff;		// R
+            pData[n + 1] = 0xff;	// G
+            pData[n + 2] = 0xff;	// B
             pData[n + 3] = 0xff;	// A
         }
         else

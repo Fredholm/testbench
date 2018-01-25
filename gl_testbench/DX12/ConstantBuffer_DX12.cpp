@@ -28,7 +28,7 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
     cbvDesc.BufferLocation = gpuAddress;
 
     const UINT cbvSrvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    static int counter = 0;
+    static int counter = 1;
     cpuHandle.Offset(counter, cbvSrvDescriptorSize);
     counter++;
 

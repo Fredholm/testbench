@@ -207,16 +207,10 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     renderTargetViewHeapDesc.Flags              = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
 
-    // Create the Shader Resource View (SRV) descriptor heap.
-    D3D12_DESCRIPTOR_HEAP_DESC shaderResourceViewHeapDesc = {};
-    shaderResourceViewHeapDesc.NumDescriptors   = 1;
-    shaderResourceViewHeapDesc.Type             = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    shaderResourceViewHeapDesc.Flags            = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&shaderResourceViewHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
-
-    // Create the Constant Buffer View (CBV) descriptor heap.
+    // Create the Shader Resource View (SRV) descriptor heap & 
+    // Create the Constant Buffer View (CBV) descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors       = 100;
+    constantBufferHeapDesc.NumDescriptors       = 101;
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
