@@ -504,6 +504,7 @@ void DX12Renderer::frame()
         // Setting the constant buffer
         CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
         m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, cbvSrvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
