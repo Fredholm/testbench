@@ -210,7 +210,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     // Create the Shader Resource View (SRV) descriptor heap & 
     // Create the Constant Buffer View (CBV) descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors       = 101;
+    constantBufferHeapDesc.NumDescriptors       = 101; // temp! one for each constant buffer (100) and one for the texture
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
@@ -451,9 +451,10 @@ void DX12Renderer::clearBuffer(unsigned int flag)
     ThrowIfFailed(m_CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_PipelineState));
 
+    m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
+
     ID3D12DescriptorHeap* ppHeaps[] = { m_sceneDescriptorHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-	m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
     m_GraphicsCommandList->RSSetScissorRects(1, &m_ScissorRect);
@@ -487,7 +488,7 @@ void DX12Renderer::frame()
     m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 
     // Adding meshes to to drawing
-    for (size_t i = 0; i < m_DrawList.size(); i++)
+    for (size_t i = 1; i < m_DrawList.size(); i++)
     {
         Mesh* mesh = m_DrawList[i];
 
