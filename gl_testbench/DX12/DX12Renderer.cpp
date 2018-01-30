@@ -278,7 +278,7 @@ void DX12Renderer::loadAssets()
     sampler.MipLODBias                  = 0;                                            // Offset from the calculated mipmap level, Ex: Direct3D calculates mipmaplevel 5, MipLodBias is 2, this results in a mipmap level of 7
     sampler.MaxAnisotropy               = 0;                                            // Clamping value if filters ANISOTROPIC or COMPARISON_ANISOTROPIC was used (Valid between 1:16)
     sampler.ComparisonFunc              = D3D12_COMPARISON_FUNC_NEVER;                  // Function which compares sampled data against existing sampling data, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770349)
-    sampler.BorderColor                 = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;  // If ADDRESS_MODE_BORDER was used somewhere, List(https://msdn.microsoft.com/en-us/library/windows/desktop/dn903815)
+    sampler.BorderColor                 = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;       // If ADDRESS_MODE_BORDER was used somewhere, List(https://msdn.microsoft.com/en-us/library/windows/desktop/dn903815)
     sampler.MinLOD                      = 0.0f;                                         // Minimun clamping of mipmap (min: 0.f)        
     sampler.MaxLOD                      = D3D12_FLOAT32_MAX;                            // Maximum clamping of mipmap (max: D3D12_FLOAT32_MAX)
     sampler.ShaderRegister              = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> ShaderRegister of 2 
@@ -482,6 +482,10 @@ void DX12Renderer::frame()
     // Set the Topology
     m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    // Setting the shader resource
+    CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
+    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+
     // Adding meshes to to drawing
     for (size_t i = 0; i < m_DrawList.size(); i++)
     {
@@ -493,9 +497,8 @@ void DX12Renderer::frame()
             m_GraphicsCommandList->IASetVertexBuffers(n, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBufferView());
 
         // Setting the constant buffer
-        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
-        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvSrvHandle);
-        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, cbvSrvHandle);
+        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);

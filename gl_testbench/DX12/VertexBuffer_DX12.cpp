@@ -42,7 +42,7 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;
     m_VertexBufferView.StrideInBytes = size / 3; // (float4 comes in at 48 bytes, it works when it's 16 bytes here, same with float2, which comes in at 16 which is only 8 bytes) i don't know..
-    m_VertexBufferView.SizeInBytes = size;;
+    m_VertexBufferView.SizeInBytes = size;
 }
 
 void VertexBuffer_DX12::bind(size_t offset, size_t size, unsigned int location)

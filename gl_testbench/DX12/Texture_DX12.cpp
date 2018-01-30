@@ -82,7 +82,7 @@ void Texture_DX12::bind(unsigned int slot)
 
 }
 
-// Creates a checkboard of white & black (Taken from Microsoft Sample!)
+// Creates a checkboard of check board with two colors (Taken from Microsoft Sample!)
 std::vector<UINT8> Texture_DX12::GenerateTextureData()
 {
     const UINT rowPitch = TextureWidth * TexturePixelSize;
@@ -102,19 +102,17 @@ std::vector<UINT8> Texture_DX12::GenerateTextureData()
 
         if (i % 2 == j % 2)
         {
-            // White
-            pData[n] = 0xff;		// R
-            pData[n + 1] = 0xff;	// G
-            pData[n + 2] = 0xff;	// B
-            pData[n + 3] = 0xff;	// A
+            pData[n]        = 255;	// R
+            pData[n + 1]    = 0;	// G
+            pData[n + 2]    = 255;	// B
+            pData[n + 3]    = 255;	// A
         }
         else
         {
-            // White
-            pData[n] = 0xff;		// R
-            pData[n + 1] = 0xff;	// G
-            pData[n + 2] = 0xff;	// B
-            pData[n + 3] = 0xff;	// A
+            pData[n]        = 0;	// R
+            pData[n + 1]    = 255;	// G
+            pData[n + 2]    = 255;	// B
+            pData[n + 3]    = 255;	// A
         }
     }
 
