@@ -12,7 +12,6 @@ DX12Renderer::DX12Renderer()
     m_RootSignature         = nullptr;
     m_sceneDescriptorHeap   = nullptr;
     m_rtDescriptorHeap      = nullptr;
-    m_PipelineState         = nullptr;
     m_GraphicsCommandList   = nullptr;
     m_Fence                 = nullptr;
     m_CommandAllocator      = nullptr;
@@ -49,11 +48,11 @@ ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int
 
 RenderState * DX12Renderer::makeRenderState()
 {
-    //RenderState_DX12* newRS = new RenderState_DX12();
-    //newRS->setGlobalWireFrame(&this->globalWireframeMode);
-    //newRS->setWireFrame(false);
-    //return (RenderState*)newRS;
-    return nullptr;
+    RenderState_DX12* newRS = new RenderState_DX12(m_RootSignature);
+ //   newRS->setGlobalWireFrame(&this->globalWireframeMode);
+    newRS->setWireFrame(false);
+    m_RenderStates.push_back(newRS);
+    return (RenderState*)newRS;
 }
 
 std::string DX12Renderer::getShaderPath()
@@ -294,54 +293,10 @@ void DX12Renderer::loadAssets()
     ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
 
     /*
-        Creation of Shaders (Move this over to Material_DX12 asap)
-    */
-    ID3DBlob* vertexShader;
-    ID3DBlob* pixelShader;
-
-#if defined(_DEBUG)
-    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-    UINT compileFlags = 0;
-#endif
-
-    ID3DBlob* errorMsg;
-
-    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, &errorMsg));
-    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &errorMsg));
-
-    D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }, // 16
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },  // 32
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }       // 40
-    };
-
-    /*
-        Creation of Graphical Pipeline State
-    */
-
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc    = {};
-    pipelineStateDesc.InputLayout                           = { inputElementDesc, _countof(inputElementDesc) };
-    pipelineStateDesc.pRootSignature                        = m_RootSignature;
-    pipelineStateDesc.VS                                    = CD3DX12_SHADER_BYTECODE(vertexShader);
-    pipelineStateDesc.PS                                    = CD3DX12_SHADER_BYTECODE(pixelShader);
-    pipelineStateDesc.RasterizerState                       = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    pipelineStateDesc.BlendState                            = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    pipelineStateDesc.DepthStencilState.DepthEnable         = FALSE;
-    pipelineStateDesc.DepthStencilState.StencilEnable       = FALSE;
-    pipelineStateDesc.SampleMask                            = UINT_MAX;
-    pipelineStateDesc.PrimitiveTopologyType                 = Options::Topology;
-    pipelineStateDesc.NumRenderTargets                      = 1;
-    pipelineStateDesc.RTVFormats[0]                         = Options::Format;
-    pipelineStateDesc.SampleDesc.Count                      = 1;
-    ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
-
-    /*
         Creation of Command List
     */
 
-    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, m_PipelineState, IID_PPV_ARGS(&m_GraphicsCommandList)));
+    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
     ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
 
     /*
@@ -449,7 +404,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 {
     // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
     ThrowIfFailed(m_CommandAllocator->Reset());
-    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_PipelineState));
+    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_RenderStates[0]->GetPipelineState()));
 
     m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
@@ -573,12 +528,6 @@ int DX12Renderer::shutdown()
     {
         m_sceneDescriptorHeap->Release();
         m_sceneDescriptorHeap = nullptr;
-    }
-
-    if (m_PipelineState)
-    {
-        m_PipelineState->Release();
-        m_PipelineState = nullptr;
     }
 
     if (m_GraphicsCommandList)
