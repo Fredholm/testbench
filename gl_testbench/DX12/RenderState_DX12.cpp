@@ -2,10 +2,20 @@
 #include "Device_DX12.h"
 
 RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
+    : m_pRootSignature(rootsignature), m_NeedToRebuild(false), m_WireFrame(false), m_PipelineState(nullptr)
 {
-    /*
-    Creation of Shaders (Move this over to Material_DX12 asap)
-    */
+    recreate();
+}
+
+RenderState_DX12::~RenderState_DX12() 
+{
+
+}
+
+void RenderState_DX12::recreate()
+{
+    deallocate();
+
     ID3DBlob* vertexShader;
     ID3DBlob* pixelShader;
 
@@ -27,13 +37,9 @@ RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }       // 40
     };
 
-    /*
-        Creation of Graphical Pipeline State
-    */
-
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {};
     pipelineStateDesc.InputLayout = { inputElementDesc, _countof(inputElementDesc) };
-    pipelineStateDesc.pRootSignature = rootsignature;
+    pipelineStateDesc.pRootSignature = m_pRootSignature;
     pipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
     pipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
     pipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -41,14 +47,14 @@ RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
     pipelineStateDesc.DepthStencilState.DepthEnable = FALSE;
     pipelineStateDesc.DepthStencilState.StencilEnable = FALSE;
     pipelineStateDesc.SampleMask = UINT_MAX;
-    pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    pipelineStateDesc.PrimitiveTopologyType = m_WireFrame ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE : D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     pipelineStateDesc.SampleDesc.Count = 1;
     ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
 }
 
-RenderState_DX12::~RenderState_DX12() 
+void RenderState_DX12::deallocate()
 {
     if (m_PipelineState)
     {
@@ -59,10 +65,13 @@ RenderState_DX12::~RenderState_DX12()
 
 void RenderState_DX12::setWireFrame(bool wireFrameOn)
 {
-
+    m_WireFrame = wireFrameOn;
+    recreate();
 }
 
-void RenderState_DX12::set()
-{
+void RenderState_DX12::set() { }
 
+ID3D12PipelineState * RenderState_DX12::GetPipelineState()
+{
+    return m_PipelineState;
 }

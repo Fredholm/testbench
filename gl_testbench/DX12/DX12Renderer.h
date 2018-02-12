@@ -118,7 +118,6 @@ private:
     ID3D12CommandQueue*         m_CommandQueue;                             //< FIFO scheduler
     ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
     ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
-    std::vector<RenderState_DX12*> m_RenderStates;
 
     // DirectX Resource Binding
     ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla

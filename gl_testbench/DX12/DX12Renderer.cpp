@@ -49,9 +49,6 @@ ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int
 RenderState * DX12Renderer::makeRenderState()
 {
     RenderState_DX12* newRS = new RenderState_DX12(m_RootSignature);
- //   newRS->setGlobalWireFrame(&this->globalWireframeMode);
-    newRS->setWireFrame(false);
-    m_RenderStates.push_back(newRS);
     return (RenderState*)newRS;
 }
 
@@ -404,7 +401,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 {
     // Should not get reset when used on the GPU, the fence should probably reassure that doesn't happen (hopefully)
     ThrowIfFailed(m_CommandAllocator->Reset());
-    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, m_RenderStates[0]->GetPipelineState()));
+    ThrowIfFailed(m_GraphicsCommandList->Reset(m_CommandAllocator, nullptr));
 
     m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
@@ -435,9 +432,6 @@ void DX12Renderer::submit(Mesh* mesh)
 
 void DX12Renderer::frame()
 {
-    // Set the Topology
-    m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
     // Setting the shader resource
     CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
     m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
@@ -446,6 +440,11 @@ void DX12Renderer::frame()
     for (size_t i = 1; i < m_DrawList.size(); i++)
     {
         Mesh* mesh = m_DrawList[i];
+
+        // Setting unique render state
+        RenderState_DX12* renderState = static_cast<RenderState_DX12*>(mesh->technique->getRenderState());
+        m_GraphicsCommandList->SetPipelineState(renderState->GetPipelineState());
+        m_GraphicsCommandList->IASetPrimitiveTopology(renderState->isWireFrame() ? D3D_PRIMITIVE_TOPOLOGY_LINESTRIP : D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // Setting all vertex buffers
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;

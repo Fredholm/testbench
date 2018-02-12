@@ -20,9 +20,17 @@ public:
     void setWireFrame(bool wireFrameOn);
     void set();
 
-    ID3D12PipelineState* GetPipelineState() { return m_PipelineState; }
+    ID3D12PipelineState* GetPipelineState();
+    bool isWireFrame() { return m_WireFrame; }
 
 private:
+
+    void recreate();
+    void deallocate();
+
+    bool m_WireFrame;
+    bool m_NeedToRebuild;
+    ID3D12RootSignature* m_pRootSignature;
     ID3D12PipelineState* m_PipelineState;
 };
 

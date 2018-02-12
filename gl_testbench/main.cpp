@@ -213,10 +213,10 @@ int initialiseTestbench()
 	renderState1->setWireFrame(true);
 
 	//// basic technique
-	//techniques.push_back(renderer->makeTechnique(materials[0], renderState1));
-	//techniques.push_back(renderer->makeTechnique(materials[1], renderer->makeRenderState()));
-	//techniques.push_back(renderer->makeTechnique(materials[2], renderer->makeRenderState()));
-	//techniques.push_back(renderer->makeTechnique(materials[3], renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(nullptr, renderState1));
+	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
 
 	//// create texture
 	Texture2D* fatboy = renderer->makeTexture2D();
@@ -256,8 +256,9 @@ int initialiseTestbench()
 		// we can create a constant buffer outside the material, for example as part of the Mesh.
 		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
 		
-		//m->technique = techniques[ i % 4];
-		//if (i % 4 == 2)
+		m->technique = techniques[ i % 4];
+		
+        //if (i % 4 == 2)
 		m->addTexture(textures[0], DIFFUSE_SLOT);
 
 		scene.push_back(m);
