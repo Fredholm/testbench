@@ -9,7 +9,7 @@ RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
 
 RenderState_DX12::~RenderState_DX12() 
 {
-
+    deallocate();
 }
 
 void RenderState_DX12::recreate()

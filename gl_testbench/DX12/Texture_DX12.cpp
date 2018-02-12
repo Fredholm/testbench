@@ -4,6 +4,7 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
 {
     m_Texture               = nullptr;
     m_TextureUploadHeap     = nullptr;
+    m_CommandList           = graphicsCommandList;    
 
     D3D12_RESOURCE_DESC textureDesc = {};
     textureDesc.MipLevels           = 1;
@@ -24,27 +25,6 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
         D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr,
         IID_PPV_ARGS(&m_Texture)));
-
-    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Texture, 0, 1);
-
-    // Create the GPU upload buffer.
-    ThrowIfFailed(m_Device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&m_TextureUploadHeap)));
-
-    std::vector<UINT8> texture = GenerateTextureData();
-
-    D3D12_SUBRESOURCE_DATA textureData = {};
-    textureData.pData = &texture[0];
-    textureData.RowPitch = TextureWidth * TexturePixelSize;
-    textureData.SlicePitch = textureData.RowPitch * TextureHeight;
-
-    UpdateSubresources(graphicsCommandList, m_Texture, m_TextureUploadHeap, 0, 0, 1, &textureData);
-    graphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
     // Describe and create a SRV for the texture.
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -74,6 +54,27 @@ Texture_DX12::~Texture_DX12()
 
 int Texture_DX12::loadFromFile(std::string filename)
 {
+    const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Texture, 0, 1);
+
+    // Create the GPU upload buffer.
+    ThrowIfFailed(m_Device->CreateCommittedResource(
+        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&m_TextureUploadHeap)));
+
+    std::vector<UINT8> texture = GenerateTextureData();
+
+    D3D12_SUBRESOURCE_DATA textureData = {};
+    textureData.pData = &texture[0];
+    textureData.RowPitch = TextureWidth * TexturePixelSize;
+    textureData.SlicePitch = textureData.RowPitch * TextureHeight;
+
+    UpdateSubresources(m_CommandList, m_Texture, m_TextureUploadHeap, 0, 0, 1, &textureData);
+    m_CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
     return 0;
 }
 

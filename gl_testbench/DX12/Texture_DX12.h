@@ -30,8 +30,9 @@ public:
 private:
     std::vector<UINT8> GenerateTextureData();
 
-    ID3D12Resource* m_Texture;
-    ID3D12Resource* m_TextureUploadHeap;
+    ID3D12GraphicsCommandList*  m_CommandList;
+    ID3D12Resource*             m_Texture;
+    ID3D12Resource*             m_TextureUploadHeap;
 };
 
 #endif // !TEXTURE_DX12_H
