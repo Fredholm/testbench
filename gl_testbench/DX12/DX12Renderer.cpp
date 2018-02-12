@@ -38,7 +38,7 @@ Texture2D * DX12Renderer::makeTexture2D()
 Sampler2D * DX12Renderer::makeSampler2D()
 {
     return (Sampler2D*)new Sampler2D_DX12();;
-    }
+}
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
@@ -431,14 +431,14 @@ void DX12Renderer::submit(Mesh* mesh)
 
 void DX12Renderer::frame()
 {
-    // Setting the shader resource
-    CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
-    m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
-
     // Adding meshes to to drawing
     for (size_t i = 1; i < m_DrawList.size(); i++)
     {
         Mesh* mesh = m_DrawList[i];
+
+        // Setting the texture
+        CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 
         // Setting unique render state
         RenderState_DX12* renderState = static_cast<RenderState_DX12*>(mesh->technique->getRenderState());

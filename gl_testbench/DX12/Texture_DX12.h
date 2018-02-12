@@ -27,6 +27,8 @@ public:
     // slot can have different interpretation depending on the API.
     void bind(unsigned int slot);
 
+    ID3D12Resource* GetTextureResource() { return m_Texture; }
+
 private:
     std::vector<UINT8> GenerateTextureData();
 
