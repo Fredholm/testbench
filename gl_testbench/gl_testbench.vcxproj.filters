@@ -114,6 +114,9 @@
     <ClCompile Include="DX12\RenderState_DX12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DX12\Sampler2D_DX12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -213,6 +216,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DX12\RenderState_DX12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\Sampler2D_DX12.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

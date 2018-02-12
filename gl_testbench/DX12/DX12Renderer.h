@@ -24,6 +24,7 @@
 #include "Texture_DX12.h"
 #include "ConstantBuffer_DX12.h"
 #include "RenderState_DX12.h"
+#include "Sampler2D_DX12.h"
 
 // Common Pointer Object, used once, fuck'em
 #include <wrl.h>

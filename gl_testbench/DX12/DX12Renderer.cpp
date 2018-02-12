@@ -37,9 +37,8 @@ Texture2D * DX12Renderer::makeTexture2D()
 
 Sampler2D * DX12Renderer::makeSampler2D()
 {
-    //	return (Sampler2D*)new Sampler2D_DX12();;
-    return nullptr;
-}
+    return (Sampler2D*)new Sampler2D_DX12();;
+    }
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {

@@ -168,6 +168,7 @@
     <ClCompile Include="OpenGL\VertexBufferGL.cpp" />
     <ClCompile Include="DX12\RenderState_DX12.cpp" />
     <ClCompile Include="Sampler2D.cpp" />
+    <ClCompile Include="DX12\Sampler2D_DX12.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="OpenGL\VertexBufferGL.h" />
     <ClInclude Include="DX12\RenderState_DX12.h" />
     <ClInclude Include="Sampler2D.h" />
+    <ClInclude Include="DX12\Sampler2D_DX12.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Camera.h" />
