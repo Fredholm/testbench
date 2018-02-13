@@ -12,10 +12,6 @@ class Texture_DX12 : public Texture2D
 {
 public:
 
-    static const UINT TextureWidth      = 256;
-    static const UINT TextureHeight     = 256;
-    static const UINT TexturePixelSize  = 4;	
-
     Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap);
     virtual ~Texture_DX12();
 
@@ -30,7 +26,6 @@ public:
     ID3D12Resource* GetTextureResource() { return m_Texture; }
 
 private:
-    std::vector<UINT8> GenerateTextureData();
 
     ID3D12GraphicsCommandList*  m_CommandList;
     ID3D12Resource*             m_Texture;
