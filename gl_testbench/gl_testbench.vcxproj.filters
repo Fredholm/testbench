@@ -230,4 +230,7 @@
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\assets\DX12\shader.hlsl" />
+  </ItemGroup>
 </Project>

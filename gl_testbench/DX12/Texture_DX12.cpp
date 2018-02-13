@@ -65,6 +65,7 @@ int Texture_DX12::loadFromFile(std::string filename)
         nullptr,
         IID_PPV_ARGS(&m_TextureUploadHeap)));
 
+    // We're not loading from file atm, we create our own texture right here.
     std::vector<UINT8> texture = GenerateTextureData();
 
     D3D12_SUBRESOURCE_DATA textureData = {};

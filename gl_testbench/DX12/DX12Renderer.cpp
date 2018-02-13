@@ -278,7 +278,7 @@ void DX12Renderer::loadAssets()
     sampler.MaxLOD                      = D3D12_FLOAT32_MAX;                            // Maximum clamping of mipmap (max: D3D12_FLOAT32_MAX)
     sampler.ShaderRegister              = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> ShaderRegister of 2 
     sampler.RegisterSpace               = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> RegisterSpace of 3 
-    sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_PIXEL;                // Which Shaders should be able to see this sampler
+    sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_ALL;                  // Which Shaders should be able to see this sampler
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);

@@ -25,14 +25,14 @@ PSInput VSMain(VS_INPUT input)
 	PSInput result;
 
     result.position = input.position + tx;
-    result.normal = input.normal;
-    result.tex = input.tex;
+    result.normal   = input.normal;
+    result.tex      = input.tex;
 
 	return result;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    float3 texColor = g_texture.Sample(g_sampler, input.tex);
+    float3 texColor = g_texture.Sample(g_sampler,input.tex);
     return float4(texColor, 1.f);
 }
