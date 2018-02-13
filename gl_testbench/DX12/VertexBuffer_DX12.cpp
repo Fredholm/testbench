@@ -10,7 +10,7 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     ThrowIfFailed(m_Device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(4000),
+        &CD3DX12_RESOURCE_DESC::Buffer(size),
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&m_VertexBuffer)
@@ -19,6 +19,8 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     // Making spot for the Vertex Buffer
     CD3DX12_RANGE readRange(0, 0);
     ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_VertexDataStart)));
+
+    printf("Created Vertex Buffer %p\n", this);
 }
 
 VertexBuffer_DX12::~VertexBuffer_DX12() 
@@ -33,6 +35,8 @@ VertexBuffer_DX12::~VertexBuffer_DX12()
 
 void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 {
+    printf("At VertexBuffer: %p, Size: %d, Offset: %d\n", this, size, offset);
+
     // Copy the triangle data to the place of the vertex buffer
     memcpy(m_VertexDataStart + offset, data, size);
 
@@ -40,8 +44,8 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 	m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
-    m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress() + offset;
-    m_VertexBufferView.StrideInBytes = size / 3.f; // (float4 comes in at 48 bytes, it works when it's 16 bytes here, same with float2, which comes in at 16 which is only 8 bytes) i don't know..
+    m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
+    m_VertexBufferView.StrideInBytes = size / 3; // (float4 comes in at 48 bytes, it works when it's 16 bytes here, same with float2, which comes in at 16 which is only 8 bytes) i don't know..
     m_VertexBufferView.SizeInBytes = size;
 }
 
