@@ -20,7 +20,7 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     CD3DX12_RANGE readRange(0, 0);
     ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_VertexDataStart)));
 
-    printf("Created Vertex Buffer %p\n", this);
+    printf("Created Vertex Buffer %p with a size in bytes of: %d\n", this, size);
 }
 
 VertexBuffer_DX12::~VertexBuffer_DX12() 
@@ -35,7 +35,7 @@ VertexBuffer_DX12::~VertexBuffer_DX12()
 
 void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 {
-    printf("At VertexBuffer: %p, Size: %d, Offset: %d\n", this, size, offset);
+    printf("Adding data to VertexBuffer at %p -.- Size: %d, Offset: %d\n", this, size, offset);
 
     // Copy the triangle data to the place of the vertex buffer
     memcpy(m_VertexDataStart + offset, data, size);
