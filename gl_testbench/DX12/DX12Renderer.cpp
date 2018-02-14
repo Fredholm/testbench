@@ -456,6 +456,8 @@ void DX12Renderer::submit(Mesh* mesh)
 
 void DX12Renderer::frame()
 {
+	m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     // Adding meshes to to drawing
     for (size_t i = 1; i < m_DrawList.size(); i++)
     {
@@ -468,7 +470,6 @@ void DX12Renderer::frame()
         // Setting unique render state
         RenderState_DX12* renderState = static_cast<RenderState_DX12*>(mesh->technique->getRenderState());
         m_GraphicsCommandList->SetPipelineState(renderState->GetPipelineState());
-        m_GraphicsCommandList->IASetPrimitiveTopology(renderState->isWireFrame() ? D3D_PRIMITIVE_TOPOLOGY_LINESTRIP : D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // Setting all vertex buffers
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
