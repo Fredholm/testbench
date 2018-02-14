@@ -48,13 +48,7 @@ ConstantBuffer_DX12::~ConstantBuffer_DX12()
 
 void ConstantBuffer_DX12::setData(const void * data, size_t size, Material * material, unsigned int location)
 {
-	DirectX::XMFLOAT4 dataGet;
-	memcpy(&dataGet, data, size);
-    m_ConstantData.offset.x = dataGet.x;
-	m_ConstantData.offset.y = dataGet.y;
-    m_ConstantData.offset.z = -dataGet.z;
-
-    memcpy(m_pCbvDataBegin, &m_ConstantData, sizeof(m_ConstantData));
+    memcpy(m_pCbvDataBegin, data, size);
 }
 
 void ConstantBuffer_DX12::bind(Material* material)

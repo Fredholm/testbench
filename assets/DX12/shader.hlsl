@@ -24,7 +24,7 @@ PSInput VSMain(VS_INPUT input)
 {
 	PSInput result;
 
-    result.position = input.position + tx;
+    result.position = input.position + float4(tx.x, tx.y, -tx.z, tx.w);
     result.normal   = input.normal;
     result.tex      = input.tex;
 
