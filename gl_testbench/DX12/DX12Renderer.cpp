@@ -1,5 +1,7 @@
 #include "DX12Renderer.h"
 
+#include "../IA.h"
+
 // Own Includes
 #include "Utility.h"
 #include "VertexBuffer_DX12.h"
@@ -230,7 +232,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     // Create the Shader Resource View (SRV) descriptor heap & 
     // Create the Constant Buffer View (CBV) descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors       = 101; // temp! one for each constant buffer (100) and one for the texture
+    constantBufferHeapDesc.NumDescriptors       = 1; // temp! one for each constant buffer (100) and one for the texture
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
     ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
@@ -278,16 +280,14 @@ void DX12Renderer::loadAssets()
     if (FAILED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
-    CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
-    CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+    CD3DX12_ROOT_PARAMETER1 rootParameters[6];
 
-    // Constant Buffer Spot
-    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
-
-    // Creates Shader Resource Spot
-    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
+	rootParameters[0].InitAsShaderResourceView(POSITION, 0);
+	rootParameters[1].InitAsShaderResourceView(NORMAL, 0);
+	rootParameters[2].InitAsShaderResourceView(TEXTCOORD, 0);
+	rootParameters[3].InitAsConstantBufferView(TRANSLATION, 0);
+	rootParameters[4].InitAsConstantBufferView(DIFFUSE_TINT, 0);
+	rootParameters[5].InitAsShaderResourceView(DIFFUSE_SLOT, 0);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -306,7 +306,7 @@ void DX12Renderer::loadAssets()
     sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_ALL;                  // Which Shaders should be able to see this sampler
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler);
 
     ID3DBlob* signature;
     ID3DBlob* error;

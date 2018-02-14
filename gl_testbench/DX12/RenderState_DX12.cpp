@@ -1,5 +1,6 @@
 #include "RenderState_DX12.h"
 #include "DX12Renderer.h"
+#include <comdef.h>
 
 RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
     : m_pRootSignature(rootsignature), m_NeedToRebuild(false), m_WireFrame(false), m_PipelineState(nullptr)
@@ -27,18 +28,23 @@ void RenderState_DX12::recreate()
 
     ID3DBlob* errorMsg;
 
-    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, &errorMsg));
-    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &errorMsg));
+	auto vshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_1", compileFlags, 0, &vertexShader, &errorMsg);
+	if FAILED(vshr)
+	{
+		char * vserr = (char*)errorMsg->GetBufferPointer();
+		OutputDebugString(_bstr_t(vserr));
+		ThrowIfFailed(vshr);
+	}
 
-    D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }, // 16
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },  // 32
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }       // 40
-    };
+	auto pshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_1", compileFlags, 0, &pixelShader, &errorMsg);
+	if FAILED(pshr)
+	{
+		char * pserr = (char*)errorMsg->GetBufferPointer();
+		OutputDebugString(_bstr_t(pserr));
+		ThrowIfFailed(pshr);
+	}
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {};
-    pipelineStateDesc.InputLayout = { inputElementDesc, _countof(inputElementDesc) };
     pipelineStateDesc.pRootSignature = m_pRootSignature;
     pipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
     pipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);

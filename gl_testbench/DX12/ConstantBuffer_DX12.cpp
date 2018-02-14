@@ -61,5 +61,4 @@ void ConstantBuffer_DX12::create(size_t size)
 
 	//    printf("Creating Constant Buffer Nr: %d at GPU: %p & CPU: %p\n", counter, gpuAddress, cpuHandle.ptr);
 	DX12Renderer::m_Device->CreateConstantBufferView(&cbvDesc, DX12Renderer::m_sceneDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
 }

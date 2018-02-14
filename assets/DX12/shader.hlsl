@@ -1,38 +1,40 @@
-cbuffer SceneConstantBuffer : register(b0)
-{
-    float4 tx;
-};
 
-Texture2D g_texture : register(t0);
+StructuredBuffer<float4> position : register(t0);
+StructuredBuffer<float3> normal : register(t1);
+StructuredBuffer<float2> uv : register(t2);
+
+struct cb_t
+{
+	float4 v;
+};
+ConstantBuffer<cb_t> tx : register(b5);
+ConstantBuffer<cb_t> color : register(b6);
+
+Texture2D g_texture : register(t7);
 SamplerState g_sampler : register(s0);
 
-struct VS_INPUT
-{
-    float4 position : POSITION;
-    float4 normal : NORMAL;
-    float2 tex : TEXCOORD;
-};
 
-struct PSInput
+struct Pixel
 {
 	float4 position : SV_POSITION;
-    float4 normal : NORMAL;
-    float2 tex : TEXCOORD;
+	float3 normal : NORMAL;
+	float2 uv : UV;
 };
 
-PSInput VSMain(VS_INPUT input)
-{
-	PSInput result;
 
-    result.position = input.position + tx;
-    result.normal   = input.normal;
-    result.tex      = input.tex;
+Pixel VSMain(uint vid : SV_VertexId)
+{
+	Pixel result;
+
+    result.position = position[vid] + tx.v;
+    result.normal   = normal[vid];
+    result.uv       = uv[vid];
 
 	return result;
 }
 
-float4 PSMain(PSInput input) : SV_TARGET
+float4 PSMain(Pixel input) : SV_TARGET
 {
-    float3 texColor = g_texture.Sample(g_sampler,input.tex);
+    float3 texColor = g_texture.Sample(g_sampler, input.uv).rgb + color.v.rgb;
     return float4(texColor, 1.f);
 }
