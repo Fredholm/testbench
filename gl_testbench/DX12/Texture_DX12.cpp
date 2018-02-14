@@ -79,11 +79,10 @@ int Texture_DX12::loadFromFile(std::string filename)
     // Setting texture data
     D3D12_SUBRESOURCE_DATA textureData = {};
     textureData.pData = rgb;
-    textureData.RowPitch = w;
-    textureData.SlicePitch = h;
+    textureData.RowPitch = w * bpp;
+    textureData.SlicePitch = w * h * bpp; // not needed since 2D texture 
 
     UpdateSubresources(m_CommandList, m_Texture, m_TextureUploadHeap, 0, 0, 1, &textureData);
-    m_CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
     stbi_image_free(rgb);
     return 0;
