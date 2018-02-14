@@ -1,6 +1,7 @@
 #include "Texture_DX12.h"
 
 #include "stb_image.h"
+#include "DX12Renderer.h"
 
 Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap)
 {
@@ -20,7 +21,7 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
     textureDesc.Dimension           = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
     // Creates the 2D Texture
-    ThrowIfFailed(m_Device->CreateCommittedResource(
+    ThrowIfFailed(DX12Renderer::m_Device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
         D3D12_HEAP_FLAG_NONE,
         &textureDesc,
@@ -36,7 +37,7 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
     srvDesc.Texture2D.MipLevels = 1;
 
     printf("Creating Shader Resource Nr: 1 at GPU: %p & CPU: %p\n", m_Texture->GetGPUVirtualAddress(), srvDescHeap->GetCPUDescriptorHandleForHeapStart().ptr);
-    m_Device->CreateShaderResourceView(m_Texture, &srvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
+	DX12Renderer::m_Device->CreateShaderResourceView(m_Texture, &srvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 Texture_DX12::~Texture_DX12()
@@ -59,7 +60,7 @@ int Texture_DX12::loadFromFile(std::string filename)
     const UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Texture, 0, 1);
 
     // Create the GPU upload buffer.
-    ThrowIfFailed(m_Device->CreateCommittedResource(
+    ThrowIfFailed(DX12Renderer::m_Device->CreateCommittedResource(
         &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
         D3D12_HEAP_FLAG_NONE,
         &CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize),

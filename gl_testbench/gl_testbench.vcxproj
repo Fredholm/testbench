@@ -150,7 +150,6 @@
   <ItemGroup>
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="DX12\ConstantBuffer_DX12.cpp" />
-    <ClCompile Include="DX12\Device_DX12.cpp" />
     <ClCompile Include="DX12\DX12Renderer.cpp" />
     <ClCompile Include="DX12\Material_DX12.cpp" />
     <ClCompile Include="DX12\Mesh_DX12.cpp" />
@@ -185,7 +184,6 @@
     <ClInclude Include="..\include\stb_image.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DX12\ConstantBuffer_DX12.h" />
-    <ClInclude Include="DX12\Device_DX12.h" />
     <ClInclude Include="DX12\DX12Renderer.h" />
     <ClInclude Include="DX12\Material_DX12.h" />
     <ClInclude Include="DX12\Mesh_DX12.h" />

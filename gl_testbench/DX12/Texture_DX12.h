@@ -6,7 +6,6 @@
 #include <vector>
 #include "../Texture2D.h"
 #include "Utility.h"
-#include "Device_DX12.h"
 
 class Texture_DX12 : public Texture2D
 {

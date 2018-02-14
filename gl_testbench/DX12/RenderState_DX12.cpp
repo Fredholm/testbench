@@ -1,5 +1,5 @@
 #include "RenderState_DX12.h"
-#include "Device_DX12.h"
+#include "DX12Renderer.h"
 
 RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
     : m_pRootSignature(rootsignature), m_NeedToRebuild(false), m_WireFrame(false), m_PipelineState(nullptr)
@@ -51,7 +51,7 @@ void RenderState_DX12::recreate()
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     pipelineStateDesc.SampleDesc.Count = 1;
-    ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
+    ThrowIfFailed(DX12Renderer::m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
 }
 
 void RenderState_DX12::deallocate()

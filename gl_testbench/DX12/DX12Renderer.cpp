@@ -1,7 +1,33 @@
 #include "DX12Renderer.h"
 
+// Own Includes
+#include "Utility.h"
+#include "VertexBuffer_DX12.h"
+#include "Mesh_DX12.h"
+#include "Material_DX12.h"
+#include "Texture_DX12.h"
+#include "ConstantBuffer_DX12.h"
+#include "RenderState_DX12.h"
+#include "Sampler2D_DX12.h"
+
 #define NAME_D3D12_OBJECT(x) SetName(x.Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed(x[n].Get(), L#x, n)
+
+ID3D12Device*			   DX12Renderer::m_Device;
+IDXGISwapChain3*           DX12Renderer::m_SwapChain;
+ID3D12Resource*            DX12Renderer::m_RenderTargets[Options::FrameCount];
+ID3D12CommandAllocator*    DX12Renderer::m_CommandAllocator;
+ID3D12CommandQueue*        DX12Renderer::m_CommandQueue;
+ID3D12GraphicsCommandList* DX12Renderer::m_GraphicsCommandList;
+ID3D12RootSignature*       DX12Renderer::m_RootSignature;
+ID3D12DescriptorHeap*      DX12Renderer::m_rtDescriptorHeap;
+ID3D12DescriptorHeap*      DX12Renderer::m_sceneDescriptorHeap;
+UINT                       DX12Renderer::m_RenderTargetViewDescSize;
+UINT                       DX12Renderer::m_CBV_SRV_UAV_Heap_Size;
+ID3D12Fence*               DX12Renderer::m_Fence;
+UINT                       DX12Renderer::m_FrameIndex;
+HANDLE                     DX12Renderer::m_FenceEvent;
+UINT64                     DX12Renderer::m_FenceValue;
 
 DX12Renderer::DX12Renderer()
 {
@@ -68,8 +94,7 @@ VertexBuffer * DX12Renderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_US
 
 Material * DX12Renderer::makeMaterial(const std::string & name)
 {
-    //  return (Material*)new Material_DX12();;
-    return nullptr;
+    return new Material_DX12();
 }
 
 Technique * DX12Renderer::makeTechnique(Material* material, RenderState* renderState)

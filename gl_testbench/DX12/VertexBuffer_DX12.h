@@ -8,7 +8,6 @@
 #include <DirectXMath.h>
 #include "../VertexBuffer.h"
 #include "Utility.h"
-#include "Device_DX12.h"
 
 #pragma comment(lib,"D3D12.lib")
 #pragma comment(lib,"DXGI.lib")
