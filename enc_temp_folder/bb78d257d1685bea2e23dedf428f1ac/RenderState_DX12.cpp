@@ -28,6 +28,7 @@ void RenderState_DX12::recreate()
 
     ID3DBlob* errorMsg;
 
+<<<<<<< HEAD
 	auto vshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_1", compileFlags, 0, &vertexShader, &errorMsg);
 	if FAILED(vshr)
 	{
@@ -35,6 +36,10 @@ void RenderState_DX12::recreate()
 		OutputDebugString(_bstr_t(vserr));
 		ThrowIfFailed(vshr);
 	}
+=======
+    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, &errorMsg));
+	ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &errorMsg));
+>>>>>>> c181438a5d4373b9b9f99d87f892314475048c44
 
 	auto pshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_1", compileFlags, 0, &pixelShader, &errorMsg);
 	if FAILED(pshr)
@@ -62,7 +67,12 @@ void RenderState_DX12::recreate()
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     pipelineStateDesc.SampleDesc.Count = 1;
+<<<<<<< HEAD
     ThrowIfFailed(DX12Renderer::m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
+=======
+	
+    ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
+>>>>>>> c181438a5d4373b9b9f99d87f892314475048c44
 }
 
 void RenderState_DX12::deallocate()

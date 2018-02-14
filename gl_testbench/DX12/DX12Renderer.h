@@ -15,17 +15,6 @@
 #include <DirectXMath.h>
 #include <D3Dcompiler.h>
 
-// Own Includes
-#include "Device_DX12.h"
-#include "Utility.h"
-#include "VertexBuffer_DX12.h"
-#include "Mesh_DX12.h"
-#include "Material_DX12.h"
-#include "Texture_DX12.h"
-#include "ConstantBuffer_DX12.h"
-#include "RenderState_DX12.h"
-#include "Sampler2D_DX12.h"
-
 // Common Pointer Object, used once, fuck'em
 #include <wrl.h>
 #include <shellapi.h>
@@ -108,29 +97,31 @@ private:
     CD3DX12_RECT                m_ScissorRect;
     float                       m_ClearColor[4];
 
+public:
     // DirectX12 Pipeline
-    IDXGISwapChain3*            m_SwapChain;                                //< IDXGISwapChain3::GetCurrentBackBufferIndex to choose which Render Target View to render to each frame
-    ID3D12Resource*             m_RenderTargets[Options::FrameCount];       //< Contains arrays of data, Enables both the GPU and CPU to read the physical memory   
+	static ID3D12Device*			   m_Device;
+    static IDXGISwapChain3*            m_SwapChain;                                //< IDXGISwapChain3::GetCurrentBackBufferIndex to choose which Render Target View to render to each frame
+    static ID3D12Resource*             m_RenderTargets[Options::FrameCount];       //< Contains arrays of data, Enables both the GPU and CPU to read the physical memory   
                                                                             //< \note CreateReservedResource is just virtual, while CreateCommitedResource is both physical and virtual, CreateHeap is still just physical
     // DirectX Command Things 
     // (Work submission was automaticly in DirectX11, 
     //  so this is all new stuff)
-    ID3D12CommandAllocator*     m_CommandAllocator;                         //< Used to back memory for the commands
-    ID3D12CommandQueue*         m_CommandQueue;                             //< FIFO scheduler
-    ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
-    ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
+    static ID3D12CommandAllocator*     m_CommandAllocator;                         //< Used to back memory for the commands
+    static ID3D12CommandQueue*         m_CommandQueue;                             //< FIFO scheduler
+    static ID3D12GraphicsCommandList*  m_GraphicsCommandList;                      //< Copied from docs, since I've never used it: Includes APIs for instrumenting the command list execution, and for setting and clearing the pipeline state
+    static ID3D12RootSignature*        m_RootSignature;                            //< Used to Link command lists to the resources the shaders need
 
     // DirectX Resource Binding
-    ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
-    ID3D12DescriptorHeap*       m_sceneDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
-    UINT                        m_RenderTargetViewDescSize;
-    UINT                        m_CBV_SRV_UAV_Heap_Size;
+    static ID3D12DescriptorHeap*       m_rtDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    static ID3D12DescriptorHeap*       m_sceneDescriptorHeap;                         //< Used as Resource Binding, They completly reworked the RB system, -> CommandList::Set*Root()DescriptorTable blabla
+    static UINT                        m_RenderTargetViewDescSize;
+    static UINT                        m_CBV_SRV_UAV_Heap_Size;
 
     // DirectX Fence Sync
-    ID3D12Fence*                m_Fence;                                    //< Used to jump between and sync GPU and CPU
-    UINT                        m_FrameIndex;                               //< Current Fence Index
-    HANDLE                      m_FenceEvent;                               //< Current Fence Event
-    UINT64                      m_FenceValue;                               //< Current Fence Value
+    static ID3D12Fence*                m_Fence;                                    //< Used to jump between and sync GPU and CPU
+    static UINT                        m_FrameIndex;                               //< Current Fence Index
+    static HANDLE                      m_FenceEvent;                               //< Current Fence Event
+    static UINT64                      m_FenceValue;                               //< Current Fence Value
 };
 
 #endif // !DX12RENDERER_H

@@ -108,9 +108,6 @@
     <ClCompile Include="DX12\Texture_DX12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DX12\Device_DX12.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DX12\RenderState_DX12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -210,9 +207,6 @@
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
     <ClInclude Include="DX12\Texture_DX12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DX12\Device_DX12.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DX12\RenderState_DX12.h">
