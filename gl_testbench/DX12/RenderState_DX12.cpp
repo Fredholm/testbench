@@ -28,7 +28,7 @@ void RenderState_DX12::recreate()
     ID3DBlob* errorMsg;
 
     ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, &errorMsg));
-    ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &errorMsg));
+	ThrowIfFailed(D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &errorMsg));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDesc[] =
     {
@@ -42,15 +42,21 @@ void RenderState_DX12::recreate()
     pipelineStateDesc.pRootSignature = m_pRootSignature;
     pipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
     pipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
-    pipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+
+	CD3DX12_RASTERIZER_DESC rasterizer(D3D12_DEFAULT);
+	rasterizer.FillMode = m_WireFrame ? D3D12_FILL_MODE_WIREFRAME : D3D12_FILL_MODE_SOLID;
+//	rasterizer.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON;
+
+    pipelineStateDesc.RasterizerState = rasterizer;
     pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     pipelineStateDesc.DepthStencilState.DepthEnable = FALSE;
     pipelineStateDesc.DepthStencilState.StencilEnable = FALSE;
     pipelineStateDesc.SampleMask = UINT_MAX;
-    pipelineStateDesc.PrimitiveTopologyType = m_WireFrame ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE : D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     pipelineStateDesc.SampleDesc.Count = 1;
+	
     ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
 }
 

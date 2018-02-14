@@ -15,6 +15,7 @@ ConstantBuffer_DX12::ConstantBuffer_DX12(std::string NAME, unsigned int location
         IID_PPV_ARGS(&m_ConstantBuffer)));
 
     ZeroMemory(&m_ConstantData, sizeof(m_ConstantData));
+
     // Map and initialize the constant buffer. We don't unmap this until the
     // app closes. Keeping things mapped for the lifetime of the resource is okay.
     CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
