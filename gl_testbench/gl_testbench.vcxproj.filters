@@ -105,6 +105,15 @@
     <ClCompile Include="DX12\ConstantBuffer_DX12.cpp">
       <Filter>Source Files\DirectX12</Filter>
     </ClCompile>
+    <ClCompile Include="DX12\Texture_DX12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12\RenderState_DX12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12\Sampler2D_DX12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -197,6 +206,15 @@
     <ClInclude Include="DX12\ConstantBuffer_DX12.h">
       <Filter>Source Files\DirectX12</Filter>
     </ClInclude>
+    <ClInclude Include="DX12\Texture_DX12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\RenderState_DX12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12\Sampler2D_DX12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\GL45\FragmentShader.glsl">
@@ -205,5 +223,8 @@
     <None Include="..\assets\GL45\VertexShader.glsl">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\assets\DX12\shader.hlsl" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 #include "DX12Renderer.h"
-#include "Texture_DX12.h"
 
 #include "../IA.h"
 
@@ -465,7 +464,6 @@ void DX12Renderer::frame()
         Mesh* mesh = m_DrawList[i];
 
         // Setting the texture
-		m_GraphicsCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(static_cast<Texture_DX12*>(mesh->textures.at(0))->GetTextureResource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
         CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
         m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
 

@@ -153,6 +153,7 @@
     <ClCompile Include="DX12\DX12Renderer.cpp" />
     <ClCompile Include="DX12\Material_DX12.cpp" />
     <ClCompile Include="DX12\Mesh_DX12.cpp" />
+    <ClCompile Include="DX12\Texture_DX12.cpp" />
     <ClCompile Include="DX12\VertexBuffer_DX12.cpp" />
     <ClCompile Include="OpenGL\ConstantBufferGL.cpp" />
     <ClCompile Include="OpenGL\MaterialGL.cpp" />
@@ -164,7 +165,9 @@
     <ClCompile Include="OpenGL\Texture2DGL.cpp" />
     <ClCompile Include="OpenGL\TransformGL.cpp" />
     <ClCompile Include="OpenGL\VertexBufferGL.cpp" />
+    <ClCompile Include="DX12\RenderState_DX12.cpp" />
     <ClCompile Include="Sampler2D.cpp" />
+    <ClCompile Include="DX12\Sampler2D_DX12.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -184,6 +187,7 @@
     <ClInclude Include="DX12\DX12Renderer.h" />
     <ClInclude Include="DX12\Material_DX12.h" />
     <ClInclude Include="DX12\Mesh_DX12.h" />
+    <ClInclude Include="DX12\Texture_DX12.h" />
     <ClInclude Include="DX12\Utility.h" />
     <ClInclude Include="DX12\VertexBuffer_DX12.h" />
     <ClInclude Include="OpenGL\ConstantBufferGL.h" />
@@ -196,7 +200,9 @@
     <ClInclude Include="OpenGL\Texture2DGL.h" />
     <ClInclude Include="OpenGL\TransformGL.h" />
     <ClInclude Include="OpenGL\VertexBufferGL.h" />
+    <ClInclude Include="DX12\RenderState_DX12.h" />
     <ClInclude Include="Sampler2D.h" />
+    <ClInclude Include="DX12\Sampler2D_DX12.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Camera.h" />
@@ -212,6 +218,14 @@
   <ItemGroup>
     <None Include="..\assets\GL45\FragmentShader.glsl" />
     <None Include="..\assets\GL45\VertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\assets\DX12\shader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
