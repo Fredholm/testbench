@@ -34,6 +34,8 @@ void renderScene();
 char gTitleBuff[256];
 double gLastDelta = 0.0;
 
+Renderer::BACKEND BACKEND = Renderer::BACKEND::DX12;
+
 void updateDelta()
 {
 #define WINDOW_SIZE 10
@@ -131,6 +133,16 @@ void renderScene()
 
 int initialiseTestbench()
 {
+#if BACKEND == Renderer::BACKEND::DX12
+	std::string definePos	      = "#define POSITION t"		 + std::to_string(POSITION)       + "\n";
+	std::string defineNor	      = "#define NORMAL t"			 + std::to_string(NORMAL)         + "\n";
+	std::string defineUV	      = "#define TEXTCOORD t"		 + std::to_string(TEXTCOORD)      + "\n";
+	std::string defineTX	      = "#define TRANSLATION b"		 + std::to_string(TRANSLATION)    + "\n";
+	std::string defineTXName      = "#define TRANSLATION_NAME "  + std::string(TRANSLATION_NAME)  + "\n";
+	std::string defineDiffCol	  = "#define DIFFUSE_TINT b"	 + std::to_string(DIFFUSE_TINT)   + "\n";
+	std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME) + "\n";
+	std::string defineDiffuse     = "#define DIFFUSE_SLOT b"	 + std::to_string(DIFFUSE_SLOT)	  + "\n";
+#else
 	std::string definePos = "#define POSITION " + std::to_string(POSITION) + "\n";
 	std::string defineNor = "#define NORMAL " + std::to_string(NORMAL) + "\n";
 	std::string defineUV = "#define TEXTCOORD " + std::to_string(TEXTCOORD) + "\n";
@@ -142,6 +154,7 @@ int initialiseTestbench()
 	std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME) + "\n";
 
 	std::string defineDiffuse = "#define DIFFUSE_SLOT " + std::to_string(DIFFUSE_SLOT) + "\n";
+#endif
 
 	std::vector<std::vector<std::string>> materialDefs = {
 		// vertex shader, fragment shader, defines
@@ -300,7 +313,7 @@ void shutdown() {
 
 int main(int argc, char *argv[])
 {
-	renderer = Renderer::makeRenderer(Renderer::BACKEND::DX12);
+	renderer = Renderer::makeRenderer(BACKEND);
 	renderer->initialize(800, 600);
 	renderer->setWinTitle("OpenGL");
 	renderer->setClearColor(0.0, 0.1, 0.1, 1.0);

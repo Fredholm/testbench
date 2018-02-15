@@ -1,5 +1,5 @@
 
-StructuredBuffer<float4> position : register(t0);
+StructuredBuffer<float4> position : register(POSITION);
 StructuredBuffer<float3> normal : register(t1);
 StructuredBuffer<float2> uv : register(t2);
 

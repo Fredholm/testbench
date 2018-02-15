@@ -52,13 +52,4 @@ void ConstantBuffer_DX12::create(size_t size)
 	// app closes. Keeping things mapped for the lifetime of the resource is okay.
 	CD3DX12_RANGE readRange(0, 0);		// We do not intend to read from this resource on the CPU.
 	ThrowIfFailed(m_ConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin)));
-	
-	D3D12_GPU_VIRTUAL_ADDRESS       gpuAddress = m_ConstantBuffer->GetGPUVirtualAddress();
-
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-	cbvDesc.SizeInBytes = (size + 255) & ~255;
-	cbvDesc.BufferLocation = gpuAddress;
-
-	//    printf("Creating Constant Buffer Nr: %d at GPU: %p & CPU: %p\n", counter, gpuAddress, cpuHandle.ptr);
-	DX12Renderer::m_Device->CreateConstantBufferView(&cbvDesc, DX12Renderer::m_sceneDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }

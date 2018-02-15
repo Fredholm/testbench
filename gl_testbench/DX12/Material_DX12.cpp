@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 
+#include "../IA.h"
+
 Material_DX12::Material_DX12() : Material()
 {
 }
@@ -70,7 +72,7 @@ int Material_DX12::compileMaterial(std::string & errString)
 		std::string defines;
 		for (auto define : shaderDefines[shaderType])
 		{
-			defines += define;
+			defines += define.rem;
 		}
 
 		std::string shaderCode = defines + fileContent;
