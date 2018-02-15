@@ -33,6 +33,7 @@ public:
 
 private:
 	std::map<UINT, ConstantBuffer_DX12*> constantBuffers;
+	std::map<ShaderType, ID3DBlob*> blobs;
 };
 
 #endif // !MATERIAL_DX12_H

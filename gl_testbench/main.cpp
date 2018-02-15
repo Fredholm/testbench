@@ -23,9 +23,9 @@ vector<Technique*> techniques;
 vector<Texture2D*> textures;
 vector<Sampler2D*> samplers;
 
-VertexBuffer* pos = nullptr;
-VertexBuffer* nor = nullptr;
-VertexBuffer* uvs = nullptr;
+VertexBuffer* pos;
+VertexBuffer* nor;
+VertexBuffer* uvs;
 
 // forward decls
 void updateScene();
@@ -36,7 +36,7 @@ double gLastDelta = 0.0;
 
 void updateDelta()
 {
-	#define WINDOW_SIZE 10
+#define WINDOW_SIZE 10
 	static Uint64 start = 0;
 	static Uint64 last = 0;
 	static double avg[WINDOW_SIZE] = { 0.0 };
@@ -61,12 +61,12 @@ constexpr int TOTAL_PLACES = 2 * TOTAL_TRIS;
 float xt[TOTAL_PLACES], yt[TOTAL_PLACES];
 
 // lissajous points
-typedef union { 
+typedef union {
 	struct { float x, y, z, w; };
 	struct { float r, g, b, a; };
 } float4;
 
-typedef union { 
+typedef union {
 	struct { float x, y; };
 	struct { float u, v; };
 } float2;
@@ -88,32 +88,28 @@ void run() {
 }
 
 /*
- update positions of triangles in the screen changing a translation only
+update positions of triangles in the screen changing a translation only
 */
 void updateScene()
 {
 	/*
-	    For each mesh in scene list, update their position 
+	For each mesh in scene list, update their position
 	*/
 	{
 		static long long shift = 0;
 		const int size = scene.size();
 		for (int i = 0; i < size; i++)
 		{
-            const float4 trans{
-                xt[(int)(float)(i + shift) % (TOTAL_PLACES)],
-                yt[(int)(float)(i + shift) % (TOTAL_PLACES)],
-                i * (-1.0 / TOTAL_PLACES),
-                0.0
-            };
-
-			scene[i]->txBuffer->setData(&trans, sizeof(trans), nullptr, TRANSLATION);
-			// scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
+			const float4 trans{
+				xt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+				yt[(int)(float)(i + shift) % (TOTAL_PLACES)],
+				i * (-1.0 / TOTAL_PLACES),
+				0.0
+			};
+			scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
 		}
-
 		// just to make them move...
 		shift += max(TOTAL_TRIS / 1000.0, TOTAL_TRIS / 100.0);
-
 	}
 	return;
 };
@@ -129,7 +125,7 @@ void renderScene()
 	renderer->frame();
 	renderer->present();
 	updateDelta();
-	sprintf(gTitleBuff, "DirectX - %3.0lf", gLastDelta);
+	sprintf(gTitleBuff, "OpenGL - %3.0lf", gLastDelta);
 	renderer->setWinTitle(gTitleBuff);
 }
 
@@ -138,10 +134,13 @@ int initialiseTestbench()
 	std::string definePos = "#define POSITION " + std::to_string(POSITION) + "\n";
 	std::string defineNor = "#define NORMAL " + std::to_string(NORMAL) + "\n";
 	std::string defineUV = "#define TEXTCOORD " + std::to_string(TEXTCOORD) + "\n";
+
 	std::string defineTX = "#define TRANSLATION " + std::to_string(TRANSLATION) + "\n";
 	std::string defineTXName = "#define TRANSLATION_NAME " + std::string(TRANSLATION_NAME) + "\n";
+
 	std::string defineDiffCol = "#define DIFFUSE_TINT " + std::to_string(DIFFUSE_TINT) + "\n";
 	std::string defineDiffColName = "#define DIFFUSE_TINT_NAME " + std::string(DIFFUSE_TINT_NAME) + "\n";
+
 	std::string defineDiffuse = "#define DIFFUSE_SLOT " + std::to_string(DIFFUSE_SLOT) + "\n";
 
 	std::vector<std::vector<std::string>> materialDefs = {
@@ -149,25 +148,25 @@ int initialiseTestbench()
 		// shader filename extension must be asked to the renderer
 		// these strings should be constructed from the IA.h file!!!
 
-		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-		   defineTXName + defineDiffCol + defineDiffColName }, 
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX +
+		defineTXName + defineDiffCol + defineDiffColName },
 
-		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-		   defineTXName + defineDiffCol + defineDiffColName }, 
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX +
+		defineTXName + defineDiffCol + defineDiffColName },
 
-		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-		   defineTXName + defineDiffCol + defineDiffColName + defineDiffuse	},
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX +
+		defineTXName + defineDiffCol + defineDiffColName + defineDiffuse },
 
-		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX + 
-		   defineTXName + defineDiffCol + defineDiffColName }, 
+		{ "VertexShader", "FragmentShader", definePos + defineNor + defineUV + defineTX +
+		defineTXName + defineDiffCol + defineDiffColName },
 	};
 
 	float degToRad = M_PI / 180.0;
 	float scale = (float)TOTAL_PLACES / 359.9;
 	for (int a = 0; a < TOTAL_PLACES; a++)
 	{
-		xt[a] = 0.8f * cosf(degToRad * ((float)a/scale) * 3.0);
-		yt[a] = 0.8f * sinf(degToRad * ((float)a/scale) * 2.0);
+		xt[a] = 0.8f * cosf(degToRad * ((float)a / scale) * 3.0);
+		yt[a] = 0.8f * sinf(degToRad * ((float)a / scale) * 2.0);
 	};
 
 	// triangle geometry:
@@ -204,7 +203,7 @@ int initialiseTestbench()
 		// when material is bound, this buffer should be also bound for access.
 
 		m->updateConstantBuffer(diffuse[i], 4 * sizeof(float), DIFFUSE_TINT);
-		
+
 		materials.push_back(m);
 	}
 
@@ -212,13 +211,13 @@ int initialiseTestbench()
 	RenderState* renderState1 = renderer->makeRenderState();
 	renderState1->setWireFrame(true);
 
-	//// basic technique
-	techniques.push_back(renderer->makeTechnique(nullptr, renderState1));
-	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
-	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
-	techniques.push_back(renderer->makeTechnique(nullptr, renderer->makeRenderState()));
+	// basic technique
+	techniques.push_back(renderer->makeTechnique(materials[0], renderState1));
+	techniques.push_back(renderer->makeTechnique(materials[1], renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(materials[2], renderer->makeRenderState()));
+	techniques.push_back(renderer->makeTechnique(materials[3], renderer->makeRenderState()));
 
-	//// create texture
+	// create texture
 	Texture2D* fatboy = renderer->makeTexture2D();
 	fatboy->loadFromFile("../assets/textures/fatboy.png");
 	Sampler2D* sampler = renderer->makeSampler2D();
@@ -251,19 +250,17 @@ int initialiseTestbench()
 		constexpr auto numberOfUVElements = std::extent<decltype(triUV)>::value;
 		offset = i * sizeof(triUV);
 		uvs->setData(triUV, sizeof(triUV), offset);
-		m->addIAVertexBufferBinding(uvs, offset, numberOfUVElements , sizeof(float2), TEXTCOORD);
+		m->addIAVertexBufferBinding(uvs, offset, numberOfUVElements, sizeof(float2), TEXTCOORD);
 
 		// we can create a constant buffer outside the material, for example as part of the Mesh.
 		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
-		
-		m->technique = techniques[ i % 4];
-		
-      //  if (i % 4 == 2)
-		    m->addTexture(textures[0], DIFFUSE_SLOT);
+
+		m->technique = techniques[i % 4];
+		if (i % 4 == 2)
+			m->addTexture(textures[0], DIFFUSE_SLOT);
 
 		scene.push_back(m);
 	}
-
 	return 0;
 }
 
@@ -282,16 +279,13 @@ void shutdown() {
 	{
 		delete(m);
 	};
-//	assert(pos->refCount() == 0);
-	if (pos)
-        delete pos;
-//	assert(nor->refCount() == 0);
-	if (nor)
-        delete nor;
-//	assert(uvs->refCount() == 0);
-	if (uvs)
-        delete uvs;
-	
+	assert(pos->refCount() == 0);
+	delete pos;
+	assert(nor->refCount() == 0);
+	delete nor;
+	assert(uvs->refCount() == 0);
+	delete uvs;
+
 	for (auto s : samplers)
 	{
 		delete s;
@@ -307,9 +301,9 @@ void shutdown() {
 int main(int argc, char *argv[])
 {
 	renderer = Renderer::makeRenderer(Renderer::BACKEND::DX12);
-	renderer->initialize(800,600);
-	renderer->setWinTitle("DirectX12");
-    renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
+	renderer->initialize(800, 600);
+	renderer->setWinTitle("OpenGL");
+	renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	initialiseTestbench();
 	run();
 	shutdown();
