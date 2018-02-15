@@ -49,6 +49,8 @@ private:
     };
 
 public:
+	friend Texture_DX12;
+
     DX12Renderer();
     virtual ~DX12Renderer();
 

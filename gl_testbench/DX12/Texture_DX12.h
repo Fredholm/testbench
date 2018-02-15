@@ -6,13 +6,13 @@
 #include <vector>
 #include "../Texture2D.h"
 #include "Utility.h"
-#include "Device_DX12.h"
 
 class Texture_DX12 : public Texture2D
 {
 public:
+	friend class DX12Renderer;
 
-    Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap);
+    Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap, ID3D12CommandAllocator* allocator, ID3D12CommandQueue* queue, ID3D12GraphicsCommandList* list, DX12Renderer* renderer);
     virtual ~Texture_DX12();
 
     // returns 0 if texture was loaded.
@@ -26,10 +26,12 @@ public:
     ID3D12Resource* GetTextureResource() { return m_Texture; }
 
 private:
-
+	ID3D12CommandAllocator*		m_CommandAllocator;
+	ID3D12CommandQueue*			m_CommandQueue;
     ID3D12GraphicsCommandList*  m_CommandList;
     ID3D12Resource*             m_Texture;
     ID3D12Resource*             m_TextureUploadHeap;
+	DX12Renderer*				m_pRenderer;
 };
 
 #endif // !TEXTURE_DX12_H

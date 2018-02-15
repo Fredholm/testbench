@@ -1,4 +1,5 @@
 #include "VertexBuffer_DX12.h"
+#include "Device_DX12.h"
 #include <Windowsnumerics.h>
 
 VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage)

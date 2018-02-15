@@ -1,12 +1,16 @@
 #include "Texture_DX12.h"
-
+#include "DX12Renderer.h"
 #include "stb_image.h"
+#include "DX12Renderer.h"
 
-Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap)
+Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D12DescriptorHeap* srvDescHeap, ID3D12CommandAllocator* allocator, ID3D12CommandQueue* queue, ID3D12GraphicsCommandList* list, DX12Renderer* renderer)
 {
     m_Texture               = nullptr;
     m_TextureUploadHeap     = nullptr;
-    m_CommandList           = graphicsCommandList;    
+    m_CommandList           = graphicsCommandList;  
+	m_CommandQueue			= queue;
+	m_CommandAllocator		= allocator;
+	m_pRenderer = renderer;
 
     D3D12_RESOURCE_DESC textureDesc = {};
     textureDesc.MipLevels           = 1;
@@ -36,7 +40,7 @@ Texture_DX12::Texture_DX12(ID3D12GraphicsCommandList* graphicsCommandList, ID3D1
     srvDesc.Texture2D.MipLevels = 1;
 
     printf("Creating Shader Resource Nr: 1 at GPU: %p & CPU: %p\n", m_Texture->GetGPUVirtualAddress(), srvDescHeap->GetCPUDescriptorHandleForHeapStart().ptr);
-    m_Device->CreateShaderResourceView(m_Texture, &srvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
+	m_Device->CreateShaderResourceView(m_Texture, &srvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 Texture_DX12::~Texture_DX12()
@@ -82,7 +86,19 @@ int Texture_DX12::loadFromFile(std::string filename)
     textureData.RowPitch = w * bpp;
     textureData.SlicePitch = w * h * bpp; // not needed since 2D texture 
 
+	ThrowIfFailed(m_CommandAllocator->Reset());
+	ThrowIfFailed(m_CommandList->Reset(m_CommandAllocator, nullptr));
+
     UpdateSubresources(m_CommandList, m_Texture, m_TextureUploadHeap, 0, 0, 1, &textureData);
+	m_CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_Texture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+	ThrowIfFailed(m_CommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
+
+	// Open for more command lists in the future
+	ID3D12CommandList* pCommandLists[] = { m_CommandList };
+	m_CommandQueue->ExecuteCommandLists(_countof(pCommandLists), pCommandLists);
+
+	m_pRenderer->waitForTheGPU();
 
     stbi_image_free(rgb);
     return 0;

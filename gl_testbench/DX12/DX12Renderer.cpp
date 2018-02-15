@@ -33,7 +33,7 @@ Mesh* DX12Renderer::makeMesh()
 
 Texture2D * DX12Renderer::makeTexture2D()
 {
-    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_sceneDescriptorHeap);
+    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_sceneDescriptorHeap, m_CommandAllocator, m_CommandQueue, m_GraphicsCommandList, this);
 }
 
 Sampler2D * DX12Renderer::makeSampler2D()
