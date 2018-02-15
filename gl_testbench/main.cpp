@@ -258,7 +258,7 @@ int initialiseTestbench()
 		
 		m->technique = techniques[ i % 4];
 		
-      //  if (i % 4 == 2)
+        if (i % 4 == 2)
 		    m->addTexture(textures[0], DIFFUSE_SLOT);
 
 		scene.push_back(m);

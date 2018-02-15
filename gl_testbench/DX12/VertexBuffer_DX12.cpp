@@ -42,7 +42,7 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
     memcpy(m_VertexDataStart + offset, data, size);
 
 	// Remember! when bind() is getting called later on, reenable this!
-	m_VertexBuffer->Unmap(0, nullptr);
+//	m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
