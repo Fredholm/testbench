@@ -263,17 +263,21 @@ void DX12Renderer::loadAssets()
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
     CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
-    CD3DX12_ROOT_PARAMETER1 rootParameters[5];
+    CD3DX12_ROOT_PARAMETER1 rootParameters[6];
 
+	// Vertex Data
 	rootParameters[ROOT_PARAMETER_POS].InitAsShaderResourceView(POSITION, 0);
 	rootParameters[ROOT_PARAMETER_NOR].InitAsShaderResourceView(NORMAL, 0);
 	rootParameters[ROOT_PARAMETER_TEX].InitAsShaderResourceView(TEXTCOORD, 0);
 
-    // Constant Buffer Spot
+	// Diffuse
+	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsConstantBufferView(DIFFUSE_TINT, 0);
+
+	// Translation in a descriptor heap
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, TRANSLATION, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[ROOT_PARAMETER_TRANSLATE].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
 
-    // Creates Shader Resource Spot
+	// Texture in a descriptor heap
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, DIFFUSE_SLOT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[ROOT_PARAMETER_TEXTURE].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
 
@@ -467,9 +471,10 @@ void DX12Renderer::frame()
         for (size_t n = 0; n < numberOfVertexBuffers; n++)
 			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
 
-        // Setting the constant buffer
-        CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
-        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TRANSLATE, cbvHandle);
+        // Setting the translate constant buffer
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+			static_cast<ConstantBuffer_DX12*>(mesh->txBuffer)->GetLocationInHeap(), m_CBV_SRV_UAV_Heap_Size);
+		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TRANSLATE, cbvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);

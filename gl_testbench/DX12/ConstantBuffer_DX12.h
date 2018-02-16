@@ -20,7 +20,10 @@ public:
     void setData(const void* data, size_t size, Material* material, unsigned int location);
     void bind(Material* material);
 
+	UINT GetLocationInHeap() { return m_LocationInHeap; }
+
 private:
+	UINT m_LocationInHeap;
     ID3D12Resource* m_ConstantBuffer;
     SceneConstantBuffer m_ConstantData;
     UINT8* m_pCbvDataBegin;
