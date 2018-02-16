@@ -255,7 +255,7 @@ void DX12Renderer::loadAssets()
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
     CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
-    CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+    CD3DX12_ROOT_PARAMETER1 rootParameters[5];
 
     // Constant Buffer Spot
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
@@ -264,6 +264,10 @@ void DX12Renderer::loadAssets()
     // Creates Shader Resource Spot
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
+
+	rootParameters[2].InitAsShaderResourceView(1, 0);
+	rootParameters[3].InitAsShaderResourceView(2, 0);
+	rootParameters[4].InitAsShaderResourceView(3, 0);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -453,7 +457,7 @@ void DX12Renderer::frame()
         // Setting all vertex buffers
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
         for (size_t n = 0; n < numberOfVertexBuffers; n++)
-            m_GraphicsCommandList->IASetVertexBuffers(n, 1, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBufferView());
+			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n + 2, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
 
         // Setting the constant buffer
         CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
