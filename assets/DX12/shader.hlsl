@@ -1,14 +1,14 @@
-cbuffer SceneConstantBuffer : register(b0)
+StructuredBuffer<float4> pos : register(t0);
+StructuredBuffer<float4> nor : register(t1);
+StructuredBuffer<float2> tex : register(t2);
+
+cbuffer SceneConstantBuffer : register(b5)
 {
     float4 tx;
 };
 
-Texture2D g_texture : register(t0);
+Texture2D g_texture : register(t7);
 SamplerState g_sampler : register(s0);
-
-StructuredBuffer<float4> pos : register(t1);
-StructuredBuffer<float4> nor : register(t2);
-StructuredBuffer<float2> tex : register(t3);
 
 struct PSInput
 {

@@ -1,5 +1,13 @@
 #include "DX12Renderer.h"
 #include "Texture_DX12.h"
+#include "../IA.h"
+
+#define ROOT_PARAMETER_POS			0
+#define ROOT_PARAMETER_NOR			1
+#define ROOT_PARAMETER_TEX			2
+#define ROOT_PARAMETER_TRANSLATE	3
+#define ROOT_PARAMETER_TEXTURE		4
+#define ROOT_PARAMETER_DIFFUSE		5
 
 #define NAME_D3D12_OBJECT(x) SetName(x.Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed(x[n].Get(), L#x, n)
@@ -257,17 +265,17 @@ void DX12Renderer::loadAssets()
     CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
     CD3DX12_ROOT_PARAMETER1 rootParameters[5];
 
+	rootParameters[ROOT_PARAMETER_POS].InitAsShaderResourceView(POSITION, 0);
+	rootParameters[ROOT_PARAMETER_NOR].InitAsShaderResourceView(NORMAL, 0);
+	rootParameters[ROOT_PARAMETER_TEX].InitAsShaderResourceView(TEXTCOORD, 0);
+
     // Constant Buffer Spot
-    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, TRANSLATION, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    rootParameters[ROOT_PARAMETER_TRANSLATE].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
 
     // Creates Shader Resource Spot
-    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    rootParameters[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
-
-	rootParameters[2].InitAsShaderResourceView(1, 0);
-	rootParameters[3].InitAsShaderResourceView(2, 0);
-	rootParameters[4].InitAsShaderResourceView(3, 0);
+    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, DIFFUSE_SLOT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    rootParameters[ROOT_PARAMETER_TEXTURE].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -447,21 +455,21 @@ void DX12Renderer::frame()
 		for (auto& texture : mesh->textures)
 		{
 			CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
-			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(1, srvHandle);
+			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TEXTURE, srvHandle);
 		}
 
 		// Setting unique render state
         RenderState_DX12* renderState = static_cast<RenderState_DX12*>(mesh->technique->getRenderState());
         m_GraphicsCommandList->SetPipelineState(renderState->GetPipelineState());
 
-        // Setting all vertex buffers
+        // Setting vertex data for vertex pulling
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
         for (size_t n = 0; n < numberOfVertexBuffers; n++)
-			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n + 2, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
+			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
 
         // Setting the constant buffer
         CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), i, m_CBV_SRV_UAV_Heap_Size);
-        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(0, cbvHandle);
+        m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TRANSLATE, cbvHandle);
 
         // Drawing triangle mesh
         m_GraphicsCommandList->DrawInstanced(3, 1, 0, 0);
