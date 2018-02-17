@@ -477,9 +477,9 @@ void DX12Renderer::frame()
 		}
 
         // Setting vertex data for vertex pulling
-        size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
-        for (size_t n = 0; n < numberOfVertexBuffers; n++)
-			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
+		m_GraphicsCommandList->SetGraphicsRootShaderResourceView(POSITION, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[POSITION].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
+		m_GraphicsCommandList->SetGraphicsRootShaderResourceView(NORMAL, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[NORMAL].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
+		m_GraphicsCommandList->SetGraphicsRootShaderResourceView(TEXTCOORD, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[TEXTCOORD].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
 
         // Setting the translate constant buffer
 		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(SceneDescHeap->GetGPUDescriptorHandleForHeapStart(),
