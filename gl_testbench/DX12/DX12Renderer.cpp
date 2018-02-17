@@ -1,6 +1,7 @@
 #include "DX12Renderer.h"
 #include "Texture_DX12.h"
 #include "Technique_DX12.h"
+#include "Sampler2D_DX12.h"
 #include "../IA.h"
 
 #define ROOT_PARAMETER_POS			0
@@ -9,6 +10,7 @@
 #define ROOT_PARAMETER_TRANSLATE	3
 #define ROOT_PARAMETER_TEXTURE		4
 #define ROOT_PARAMETER_DIFFUSE		5
+#define ROOT_PARAMETER_SAMPLER		6
 
 #define NAME_D3D12_OBJECT(x) SetName(x.Get(), L#x)
 #define NAME_D3D12_OBJECT_INDEXED(x, n) SetNameIndexed(x[n].Get(), L#x, n)
@@ -47,7 +49,7 @@ Texture2D * DX12Renderer::makeTexture2D()
 
 Sampler2D * DX12Renderer::makeSampler2D()
 {
-    return (Sampler2D*)new Sampler2D_DX12();;
+    return (Sampler2D*)new Sampler2D_DX12();
 }
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
@@ -218,6 +220,13 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
     ThrowIfFailed(Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&SceneDescHeap)));
 
+	// Creating the Sampler descriptor heap
+	D3D12_DESCRIPTOR_HEAP_DESC samplerBufferHeapDesc = {};
+	samplerBufferHeapDesc.NumDescriptors = 1100; // Creating a lot of sampler spots
+	samplerBufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+	samplerBufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(Device->CreateDescriptorHeap(&samplerBufferHeapDesc, IID_PPV_ARGS(&SamplerDescHeap)));
+
     /*
         Creation of Render Target
     */
@@ -261,8 +270,8 @@ void DX12Renderer::loadAssets()
     if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
-    CD3DX12_DESCRIPTOR_RANGE1 ranges[3];
-    CD3DX12_ROOT_PARAMETER1 rootParameters[6];
+    CD3DX12_DESCRIPTOR_RANGE1 ranges[4];
+    CD3DX12_ROOT_PARAMETER1 rootParameters[7];
 
 	// Vertex Data
 	rootParameters[ROOT_PARAMETER_POS].InitAsShaderResourceView(POSITION, 0);
@@ -281,24 +290,12 @@ void DX12Renderer::loadAssets()
 	ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, DIFFUSE_TINT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsDescriptorTable(1, &ranges[2], D3D12_SHADER_VISIBILITY_ALL);
 
-    // Sampler (For texturing)
-    D3D12_STATIC_SAMPLER_DESC sampler   = {};
-    sampler.Filter                      = D3D12_FILTER_MIN_MAG_MIP_POINT;               // What Filtering Method should be used, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770367)
-    sampler.AddressU                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of U 
-    sampler.AddressV                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of V
-    sampler.AddressW                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of W
-    sampler.MipLODBias                  = 0;                                            // Offset from the calculated mipmap level, Ex: Direct3D calculates mipmaplevel 5, MipLodBias is 2, this results in a mipmap level of 7
-    sampler.MaxAnisotropy               = 0;                                            // Clamping value if filters ANISOTROPIC or COMPARISON_ANISOTROPIC was used (Valid between 1:16)
-    sampler.ComparisonFunc              = D3D12_COMPARISON_FUNC_NEVER;                  // Function which compares sampled data against existing sampling data, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770349)
-    sampler.BorderColor                 = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;       // If ADDRESS_MODE_BORDER was used somewhere, List(https://msdn.microsoft.com/en-us/library/windows/desktop/dn903815)
-    sampler.MinLOD                      = 0.0f;                                         // Minimun clamping of mipmap (min: 0.f)        
-    sampler.MaxLOD                      = D3D12_FLOAT32_MAX;                            // Maximum clamping of mipmap (max: D3D12_FLOAT32_MAX)
-    sampler.ShaderRegister              = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> ShaderRegister of 2 
-    sampler.RegisterSpace               = 0;                                            // Example: (HLSL) Texture2D<float4> a : register(t2, space3) -> RegisterSpace of 3 
-    sampler.ShaderVisibility            = D3D12_SHADER_VISIBILITY_ALL;                  // Which Shaders should be able to see this sampler
+	// Samplers
+	ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
+	rootParameters[ROOT_PARAMETER_SAMPLER].InitAsDescriptorTable(1, &ranges[3], D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ID3DBlob* signature;
     ID3DBlob* error;
@@ -421,7 +418,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
     m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
-    ID3D12DescriptorHeap* ppHeaps[] = { SceneDescHeap };
+    ID3D12DescriptorHeap* ppHeaps[] = { SceneDescHeap, SamplerDescHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
@@ -461,7 +458,9 @@ void DX12Renderer::frame()
 		for (auto& texture : mesh->textures)
 		{
 			CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(SceneDescHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
+			CD3DX12_GPU_DESCRIPTOR_HANDLE samHandle(SamplerDescHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<Sampler2D_DX12*>(mesh->textures[DIFFUSE_SLOT]->sampler)->GetLocationInHeap(), m_CBV_SRV_UAV_Heap_Size);
 			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TEXTURE, srvHandle);
+			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_SAMPLER, samHandle);
 		}
 
 		// Setting unique render state

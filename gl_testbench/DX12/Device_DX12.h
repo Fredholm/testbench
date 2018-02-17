@@ -5,5 +5,6 @@
 
 extern ID3D12Device*			Device;
 extern ID3D12DescriptorHeap*	SceneDescHeap;
+extern ID3D12DescriptorHeap*	SamplerDescHeap;
 
 #endif // !DEVICE_DX12_H
