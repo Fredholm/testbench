@@ -20,8 +20,6 @@ VertexBuffer_DX12::VertexBuffer_DX12(size_t size, VertexBuffer::DATA_USAGE usage
     // Making spot for the Vertex Buffer
     CD3DX12_RANGE readRange(0, 0);
     ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_VertexDataStart)));
-
-    printf("Created Vertex Buffer %p with a size in bytes of: %d\n", this, size);
 }
 
 VertexBuffer_DX12::~VertexBuffer_DX12() 
@@ -36,13 +34,8 @@ VertexBuffer_DX12::~VertexBuffer_DX12()
 
 void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 {
-    printf("Adding data to VertexBuffer at %p -.- Size: %d, Offset: %d\n", this, size, offset);
-
     // Copy the triangle data to the place of the vertex buffer
     memcpy(m_VertexDataStart + offset, data, size);
-
-	// Remember! when bind() is getting called later on, reenable this!
-//	m_VertexBuffer->Unmap(0, nullptr);
 
     // Initialize the Vertex Buffer View
     m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
@@ -52,7 +45,6 @@ void VertexBuffer_DX12::setData(const void * data, size_t size, size_t offset)
 
 void VertexBuffer_DX12::bind(size_t offset, size_t size, unsigned int location)
 {
-	printf("ya");
     CD3DX12_RANGE readRange(0, size);
     ThrowIfFailed(m_VertexBuffer->Map(location, &readRange, reinterpret_cast<void**>(m_VertexBufferView.BufferLocation + offset)));
 }
