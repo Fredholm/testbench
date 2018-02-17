@@ -261,7 +261,7 @@ void DX12Renderer::loadAssets()
     if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
-    CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
+    CD3DX12_DESCRIPTOR_RANGE1 ranges[3];
     CD3DX12_ROOT_PARAMETER1 rootParameters[6];
 
 	// Vertex Data
@@ -270,7 +270,8 @@ void DX12Renderer::loadAssets()
 	rootParameters[ROOT_PARAMETER_TEX].InitAsShaderResourceView(TEXTCOORD, 0);
 
 	// Diffuse
-	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsConstantBufferView(DIFFUSE_TINT, 0);
+	ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, DIFFUSE_TINT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsDescriptorTable(1, &ranges[2], D3D12_SHADER_VISIBILITY_ALL);
 
 	// Translation in a descriptor heap
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, TRANSLATION, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
@@ -438,7 +439,8 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
 void DX12Renderer::setRenderState(RenderState* ps)
 {
-	m_GraphicsCommandList->SetPipelineState(static_cast<RenderState_DX12*>(ps)->GetPipelineState());
+	RenderState_DX12* renderState = static_cast<RenderState_DX12*>(ps);
+	m_GraphicsCommandList->SetPipelineState(renderState->GetPipelineState());
 }
 
 void DX12Renderer::submit(Mesh* mesh)
@@ -464,6 +466,15 @@ void DX12Renderer::frame()
 
 		// Setting unique render state
         mesh->technique->enable(this);
+
+		// Setting diffuse
+		Material_DX12* mat = static_cast<Material_DX12*>(mesh->technique->getMaterial());
+		if (mat->constantBuffers.size() != 0)
+		{
+			CD3DX12_GPU_DESCRIPTOR_HANDLE diffuseHandle(SceneDescHeap->GetGPUDescriptorHandleForHeapStart(),
+				mat->constantBuffers.at(DIFFUSE_TINT)->GetLocationInHeap(), m_CBV_SRV_UAV_Heap_Size);
+			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_DIFFUSE, diffuseHandle);
+		}
 
         // Setting vertex data for vertex pulling
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
