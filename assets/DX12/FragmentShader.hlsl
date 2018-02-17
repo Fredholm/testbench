@@ -23,7 +23,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 #ifdef DIFFUSE_SLOT
 	float4 col = g_texture.Sample(g_sampler, input.tex);
 #else
-	float4 col = float4(1.0, 1.0, 0.0, 1.0);
+	float4 col = float4(1.0, 1.0, 1.0, 1.0);
 #endif
 
 	return col * diffuse;
