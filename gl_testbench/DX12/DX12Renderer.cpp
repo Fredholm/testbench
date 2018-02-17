@@ -1,5 +1,6 @@
 #include "DX12Renderer.h"
 #include "Texture_DX12.h"
+#include "Technique_DX12.h"
 #include "../IA.h"
 
 #define ROOT_PARAMETER_POS			0
@@ -16,10 +17,10 @@ DX12Renderer::DX12Renderer()
 {
     m_SDLWindow             = nullptr;
     m_SwapChain             = nullptr;
-    m_Device                = nullptr;
+    Device                = nullptr;
     m_CommandQueue          = nullptr;
     m_RootSignature         = nullptr;
-    m_sceneDescriptorHeap   = nullptr;
+    SceneDescHeap   = nullptr;
     m_rtDescriptorHeap      = nullptr;
     m_GraphicsCommandList   = nullptr;
     m_Fence                 = nullptr;
@@ -41,7 +42,7 @@ Mesh* DX12Renderer::makeMesh()
 
 Texture2D * DX12Renderer::makeTexture2D()
 {
-    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, m_sceneDescriptorHeap, m_CommandAllocator, m_CommandQueue, m_GraphicsCommandList, this);
+    return (Texture2D*)new Texture_DX12(m_GraphicsCommandList, SceneDescHeap, m_CommandAllocator, m_CommandQueue, m_GraphicsCommandList, this);
 }
 
 Sampler2D * DX12Renderer::makeSampler2D()
@@ -51,7 +52,7 @@ Sampler2D * DX12Renderer::makeSampler2D()
 
 ConstantBuffer * DX12Renderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-    return new ConstantBuffer_DX12(NAME, location, m_Device, m_sceneDescriptorHeap);
+    return new ConstantBuffer_DX12(NAME, location);
 }
 
 RenderState * DX12Renderer::makeRenderState()
@@ -77,14 +78,12 @@ VertexBuffer * DX12Renderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_US
 
 Material * DX12Renderer::makeMaterial(const std::string & name)
 {
-    //  return (Material*)new Material_DX12();;
-    return nullptr;
+    return (Material*)new Material_DX12(name);
 }
 
 Technique * DX12Renderer::makeTechnique(Material* material, RenderState* renderState)
 {
-    Technique* t = new Technique(material, renderState);
-    return t;
+	return (Technique*)new Technique_DX12(material, renderState);
 }
 
 int DX12Renderer::initialize(unsigned int width, unsigned int height)
@@ -162,7 +161,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     IDXGIAdapter1* hardwareAdapter;
     getHardwareAdapter(factory, &hardwareAdapter);
 
-    ThrowIfFailed(D3D12CreateDevice(hardwareAdapter, Options::FeatureLevel, IID_PPV_ARGS(&m_Device)));
+    ThrowIfFailed(D3D12CreateDevice(hardwareAdapter, Options::FeatureLevel, IID_PPV_ARGS(&Device)));
 
     /*
         Creation of the Command Queue
@@ -172,7 +171,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     commandQueueDesc.Flags  = D3D12_COMMAND_QUEUE_FLAG_NONE;
     commandQueueDesc.Type   = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-    ThrowIfFailed(m_Device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&m_CommandQueue)));
+    ThrowIfFailed(Device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&m_CommandQueue)));
 
     /*
         Creation of the Swap Chain
@@ -201,23 +200,23 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     */
 
     // Gets the description view sizes of each descriptor heaps
-    m_RenderTargetViewDescSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_CBV_SRV_UAV_Heap_Size = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_RenderTargetViewDescSize = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_CBV_SRV_UAV_Heap_Size = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Create the Render Target View (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC renderTargetViewHeapDesc = {};
     renderTargetViewHeapDesc.NumDescriptors     = Options::FrameCount;
     renderTargetViewHeapDesc.Type               = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     renderTargetViewHeapDesc.Flags              = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
+    ThrowIfFailed(Device->CreateDescriptorHeap(&renderTargetViewHeapDesc, IID_PPV_ARGS(&m_rtDescriptorHeap)));
 
     // Create the Shader Resource View (SRV) descriptor heap & 
     // Create the Constant Buffer View (CBV) descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors       = 101; // temp! one for each constant buffer (100) and one for the texture
+    constantBufferHeapDesc.NumDescriptors       = 105; // temp! one for each constant buffer (100) and one for the texture and 4 for diffuse color
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
-    ThrowIfFailed(m_Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&m_sceneDescriptorHeap)));
+    ThrowIfFailed(Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&SceneDescHeap)));
 
     /*
         Creation of Render Target
@@ -227,7 +226,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     for (UINT i = 0; i < Options::FrameCount; i++)
     {
         ThrowIfFailed(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_RenderTargets[i])));
-        m_Device->CreateRenderTargetView(m_RenderTargets[i], nullptr, renderTargetViewHandle);
+        Device->CreateRenderTargetView(m_RenderTargets[i], nullptr, renderTargetViewHandle);
         renderTargetViewHandle.Offset(1, m_RenderTargetViewDescSize);
     }
 
@@ -235,7 +234,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
         Creation of Command Allocater resources
     */
 
-    ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
+    ThrowIfFailed(Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 
 
     // These things won't be used again
@@ -259,7 +258,7 @@ void DX12Renderer::loadAssets()
     // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
     featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-    if (FAILED(m_Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+    if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
     CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
@@ -303,20 +302,20 @@ void DX12Renderer::loadAssets()
     ID3DBlob* signature;
     ID3DBlob* error;
     ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
-    ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
+    ThrowIfFailed(Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
 
     /*
         Creation of Command List
     */
 
-    ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
+    ThrowIfFailed(Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, nullptr, IID_PPV_ARGS(&m_GraphicsCommandList)));
     ThrowIfFailed(m_GraphicsCommandList->Close()); // Nothing to record atm, so we'll close it and then open it when ready, will crash if we leave it open for the GPU
 
     /*
         Creation of Objects used for Syncing GPU and CPU
     */
     
-    ThrowIfFailed(m_Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+    ThrowIfFailed(Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
     m_FenceValue = 1;
 
     m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -421,7 +420,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
     m_GraphicsCommandList->SetGraphicsRootSignature(m_RootSignature);
 
-    ID3D12DescriptorHeap* ppHeaps[] = { m_sceneDescriptorHeap };
+    ID3D12DescriptorHeap* ppHeaps[] = { SceneDescHeap };
     m_GraphicsCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
     m_GraphicsCommandList->RSSetViewports(1, &m_Viewport);
@@ -439,6 +438,7 @@ void DX12Renderer::clearBuffer(unsigned int flag)
 
 void DX12Renderer::setRenderState(RenderState* ps)
 {
+	m_GraphicsCommandList->SetPipelineState(static_cast<RenderState_DX12*>(ps)->GetPipelineState());
 }
 
 void DX12Renderer::submit(Mesh* mesh)
@@ -458,13 +458,12 @@ void DX12Renderer::frame()
         // Setting the textures
 		for (auto& texture : mesh->textures)
 		{
-			CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
+			CD3DX12_GPU_DESCRIPTOR_HANDLE srvHandle(SceneDescHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_CBV_SRV_UAV_Heap_Size);
 			m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TEXTURE, srvHandle);
 		}
 
 		// Setting unique render state
-        RenderState_DX12* renderState = static_cast<RenderState_DX12*>(mesh->technique->getRenderState());
-        m_GraphicsCommandList->SetPipelineState(renderState->GetPipelineState());
+        mesh->technique->enable(this);
 
         // Setting vertex data for vertex pulling
         size_t numberOfVertexBuffers = mesh->geometryBuffers[0].numElements;
@@ -472,7 +471,7 @@ void DX12Renderer::frame()
 			m_GraphicsCommandList->SetGraphicsRootShaderResourceView(n, static_cast<VertexBuffer_DX12*>(mesh->geometryBuffers[n].buffer)->getVertexBuffer()->GetGPUVirtualAddress());
 
         // Setting the translate constant buffer
-		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_sceneDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
+		CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(SceneDescHeap->GetGPUDescriptorHandleForHeapStart(),
 			static_cast<ConstantBuffer_DX12*>(mesh->txBuffer)->GetLocationInHeap(), m_CBV_SRV_UAV_Heap_Size);
 		m_GraphicsCommandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_TRANSLATE, cbvHandle);
 
@@ -504,10 +503,10 @@ int DX12Renderer::shutdown()
         m_SwapChain = nullptr;
     }
 
-    if (m_Device)
+    if (Device)
     {
-        m_Device->Release();
-        m_Device = nullptr;
+        Device->Release();
+        Device = nullptr;
     }
    
     for (UINT i = 0; i < Options::FrameCount; i++)
@@ -544,10 +543,10 @@ int DX12Renderer::shutdown()
         m_rtDescriptorHeap = nullptr;
     }
 
-    if (m_sceneDescriptorHeap)
+    if (SceneDescHeap)
     {
-        m_sceneDescriptorHeap->Release();
-        m_sceneDescriptorHeap = nullptr;
+        SceneDescHeap->Release();
+        SceneDescHeap = nullptr;
     }
 
     if (m_GraphicsCommandList)

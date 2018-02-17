@@ -23,15 +23,20 @@ public:
     ID3D12PipelineState* GetPipelineState();
     bool isWireFrame() { return m_WireFrame; }
 
+	void setPS(ID3DBlob* ps) { m_PixelShader	= ps; }
+	void setVS(ID3DBlob* vs) { m_VertexShader	= vs; }
+
 private:
 
     void recreate();
     void deallocate();
 
-    bool m_WireFrame;
-    bool m_NeedToRebuild;
-    ID3D12RootSignature* m_pRootSignature;
-    ID3D12PipelineState* m_PipelineState;
+    bool					m_WireFrame;
+    bool					m_NeedToRebuild;
+    ID3D12RootSignature*	m_pRootSignature;
+    ID3D12PipelineState*	m_PipelineState;
+	ID3DBlob*				m_VertexShader;
+	ID3DBlob*				m_PixelShader;
 };
 
 

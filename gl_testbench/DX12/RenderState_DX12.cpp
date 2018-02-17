@@ -5,7 +5,8 @@
 RenderState_DX12::RenderState_DX12(ID3D12RootSignature* rootsignature)
     : m_pRootSignature(rootsignature), m_NeedToRebuild(false), m_WireFrame(false), m_PipelineState(nullptr)
 {
-    recreate();
+	m_PixelShader = nullptr;
+	m_VertexShader = nullptr;
 }
 
 RenderState_DX12::~RenderState_DX12() 
@@ -17,8 +18,11 @@ void RenderState_DX12::recreate()
 {
     deallocate();
 
-    ID3DBlob* vertexShader;
-    ID3DBlob* pixelShader;
+	if (!m_VertexShader || !m_PixelShader)
+	{
+		printf("Shaders not created.\n");
+		return;
+	}
 
 #if defined(_DEBUG)
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -26,28 +30,10 @@ void RenderState_DX12::recreate()
     UINT compileFlags = 0;
 #endif
 
-    ID3DBlob* errorMsg;
-	
-	auto vshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "VSMain", "vs_5_1", compileFlags, 0, &vertexShader, &errorMsg);
-	if FAILED(vshr)
-	{
-		char * vserr = (char*)errorMsg->GetBufferPointer();
-		OutputDebugString(_bstr_t(vserr));
-		ThrowIfFailed(vshr);
-	}
-
-	auto pshr = D3DCompileFromFile(L"../assets/DX12/shader.hlsl", nullptr, nullptr, "PSMain", "ps_5_1", compileFlags, 0, &pixelShader, &errorMsg);
-	if FAILED(pshr)
-	{
-		char * pserr = (char*)errorMsg->GetBufferPointer();
-		OutputDebugString(_bstr_t(pserr));
-		ThrowIfFailed(pshr);
-	}
-
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {};
     pipelineStateDesc.pRootSignature = m_pRootSignature;
-    pipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader);
-    pipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader);
+    pipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(m_VertexShader);
+    pipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(m_PixelShader);
 
 	CD3DX12_RASTERIZER_DESC rasterizer(D3D12_DEFAULT);
 	rasterizer.FillMode = m_WireFrame ? D3D12_FILL_MODE_WIREFRAME : D3D12_FILL_MODE_SOLID;
@@ -63,7 +49,7 @@ void RenderState_DX12::recreate()
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     pipelineStateDesc.SampleDesc.Count = 1;
 	
-    ThrowIfFailed(m_Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
+    ThrowIfFailed(Device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PipelineState)));
 }
 
 void RenderState_DX12::deallocate()
@@ -81,7 +67,10 @@ void RenderState_DX12::setWireFrame(bool wireFrameOn)
     recreate();
 }
 
-void RenderState_DX12::set() { }
+void RenderState_DX12::set() 
+{
+	recreate();
+}
 
 ID3D12PipelineState * RenderState_DX12::GetPipelineState()
 {

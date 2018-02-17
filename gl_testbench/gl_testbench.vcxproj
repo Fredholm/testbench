@@ -170,6 +170,7 @@
     <ClCompile Include="Sampler2D.cpp" />
     <ClCompile Include="DX12\Sampler2D_DX12.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="DX12\Technique_DX12.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="Sampler2D.h" />
     <ClInclude Include="DX12\Sampler2D_DX12.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="DX12\Technique_DX12.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="IA.h" />
@@ -220,14 +222,6 @@
   <ItemGroup>
     <None Include="..\assets\GL45\FragmentShader.glsl" />
     <None Include="..\assets\GL45\VertexShader.glsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\assets\DX12\shader.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

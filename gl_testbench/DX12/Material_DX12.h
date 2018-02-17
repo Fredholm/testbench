@@ -6,7 +6,7 @@
 #pragma comment(lib,"D3DCompiler.lib")
 #include "../Material.h"
 #include "Utility.h"
-// #include "ConstantBuffer_DX12.h"
+ #include "ConstantBuffer_DX12.h"
 
 class DX12Renderer;
 class Material_DX12 : public Material
@@ -49,9 +49,12 @@ public:
     // disable material
     void disable();
 
-//    std::map<unsigned int, ConstantBuffer_DX12*> constantBuffers;
+	ID3DBlob* getBlob(ShaderType type);
 
 private:
+
+	std::map<ShaderType, ID3DBlob*> blobs;
+	std::map<UINT, ConstantBuffer_DX12*> constantBuffers;
 
 };
 
