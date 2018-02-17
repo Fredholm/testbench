@@ -84,8 +84,8 @@ int Material_DX12::compileMaterial(std::string & errString)
 
         UINT compileFlags = 0;
         #ifdef _DEBUG
-        compileFlags += D3DCOMPILE_DEBUG;
-        compileFlags += D3DCOMPILE_SKIP_OPTIMIZATION;
+        compileFlags |= D3DCOMPILE_DEBUG;
+        compileFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
         #endif
 
         BreakOnFail2(D3DCompile(
