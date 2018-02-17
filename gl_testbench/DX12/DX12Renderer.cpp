@@ -213,7 +213,7 @@ void DX12Renderer::loadPipeline(unsigned int width, unsigned int height)
     // Create the Shader Resource View (SRV) descriptor heap & 
     // Create the Constant Buffer View (CBV) descriptor heap
     D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-    constantBufferHeapDesc.NumDescriptors       = 105; // temp! one for each constant buffer (100) and one for the texture and 4 for diffuse color
+    constantBufferHeapDesc.NumDescriptors       = 100 + 1 + 4 + 1000; // 100 for all the triangles, 1 for texture, 4 for diffuse, (1000 extra for changing of triangles)
     constantBufferHeapDesc.Type                 = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     constantBufferHeapDesc.Flags                = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;  
     ThrowIfFailed(Device->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&SceneDescHeap)));
@@ -269,10 +269,6 @@ void DX12Renderer::loadAssets()
 	rootParameters[ROOT_PARAMETER_NOR].InitAsShaderResourceView(NORMAL, 0);
 	rootParameters[ROOT_PARAMETER_TEX].InitAsShaderResourceView(TEXTCOORD, 0);
 
-	// Diffuse
-	ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, DIFFUSE_TINT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsDescriptorTable(1, &ranges[2], D3D12_SHADER_VISIBILITY_ALL);
-
 	// Translation in a descriptor heap
     ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, TRANSLATION, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[ROOT_PARAMETER_TRANSLATE].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
@@ -280,6 +276,10 @@ void DX12Renderer::loadAssets()
 	// Texture in a descriptor heap
     ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, DIFFUSE_SLOT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
     rootParameters[ROOT_PARAMETER_TEXTURE].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
+
+	// Diffuse
+	ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, DIFFUSE_TINT, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+	rootParameters[ROOT_PARAMETER_DIFFUSE].InitAsDescriptorTable(1, &ranges[2], D3D12_SHADER_VISIBILITY_ALL);
 
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
@@ -453,7 +453,7 @@ void DX12Renderer::frame()
 	m_GraphicsCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Adding meshes to to drawing
-    for (size_t i = 1; i < m_DrawList.size(); i++)
+    for (size_t i = 0; i < m_DrawList.size(); i++)
     {
         Mesh* mesh = m_DrawList[i];
 
