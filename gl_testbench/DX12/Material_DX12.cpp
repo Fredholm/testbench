@@ -86,8 +86,6 @@ int Material_DX12::compileMaterial(std::string & errString)
 		fout << shaderCode;
 		fout.close(); 
 
-		printf("Shader: %s\n", shaderCode.c_str());
-
 		UINT compileFlags = 0;
 #ifdef _DEBUG
 		compileFlags += D3DCOMPILE_DEBUG;

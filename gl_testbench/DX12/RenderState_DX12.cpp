@@ -18,11 +18,9 @@ void RenderState_DX12::recreate()
 {
     deallocate();
 
+	// It returns here if we're not ready to compile it yet, ex: setting wireframe and then compiling
 	if (!m_VertexShader || !m_PixelShader)
-	{
-		printf("Shaders not created.\n");
 		return;
-	}
 
 #if defined(_DEBUG)
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
