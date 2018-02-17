@@ -284,9 +284,9 @@ void DX12Renderer::loadAssets()
     // Sampler (For texturing)
     D3D12_STATIC_SAMPLER_DESC sampler   = {};
     sampler.Filter                      = D3D12_FILTER_MIN_MAG_MIP_POINT;               // What Filtering Method should be used, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770367)
-    sampler.AddressU                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of U 
-    sampler.AddressV                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of V
-    sampler.AddressW                    = D3D12_TEXTURE_ADDRESS_MODE_BORDER;            // Outside the range (0:1) of W
+    sampler.AddressU                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of U 
+    sampler.AddressV                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of V
+    sampler.AddressW                    = D3D12_TEXTURE_ADDRESS_MODE_MIRROR;            // Outside the range (0:1) of W
     sampler.MipLODBias                  = 0;                                            // Offset from the calculated mipmap level, Ex: Direct3D calculates mipmaplevel 5, MipLodBias is 2, this results in a mipmap level of 7
     sampler.MaxAnisotropy               = 0;                                            // Clamping value if filters ANISOTROPIC or COMPARISON_ANISOTROPIC was used (Valid between 1:16)
     sampler.ComparisonFunc              = D3D12_COMPARISON_FUNC_NEVER;                  // Function which compares sampled data against existing sampling data, List:(https://msdn.microsoft.com/en-us/library/windows/desktop/dn770349)
