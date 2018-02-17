@@ -16,8 +16,8 @@ SamplerState g_sampler : register(s0);
 struct PSInput
 {
 	float4 position : SV_POSITION;
-    float4 normal : SECOND;
-    float2 tex : THIRD;
+    float4 normal : _NORMAL;
+    float2 tex : _TEXTCOORD;
 };
 
 float4 PSMain(PSInput input) : SV_TARGET

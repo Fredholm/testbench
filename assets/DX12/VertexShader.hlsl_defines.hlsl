@@ -17,8 +17,8 @@ cbuffer SceneConstantBuffer : register(b5)
 struct PSInput
 {
 	float4 position : SV_POSITION;
-    float4 normal : SECOND;
-    float2 tex : THIRD;
+	float4 normal : _NORMAL;
+	float2 tex : _TEXTCOORD;
 };
 
 PSInput VSMain(uint vertexID : SV_VertexID)
