@@ -1,8 +1,11 @@
-StructuredBuffer<float4> pos : register(t0);
-StructuredBuffer<float4> nor : register(t1);
-StructuredBuffer<float2> tex : register(t2);
+#define T(slot) t##slot
+#define B(slot) b##slot
 
-cbuffer SceneConstantBuffer : register(b5)
+StructuredBuffer<float4> pos : register(T(POSITION));
+StructuredBuffer<float4> nor : register(T(NORMAL));
+StructuredBuffer<float2> tex : register(T(TEXTCOORD));
+
+cbuffer SceneConstantBuffer : register(B(TRANSLATION))
 {
     float4 tx;
 };

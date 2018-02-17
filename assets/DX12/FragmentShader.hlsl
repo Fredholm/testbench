@@ -1,9 +1,12 @@
-cbuffer SceneDiffuseColor : register(b6)
+#define T(slot) t##slot
+#define B(slot) b##slot
+
+cbuffer SceneDiffuseColor : register(B(DIFFUSE_TINT))
 {
 	float4 diffuse;
 };
 
-Texture2D g_texture : register(t7);
+Texture2D g_texture : register(T(DIFFUSE_SLOT));
 SamplerState g_sampler : register(s0);
 
 struct PSInput
